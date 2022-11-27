@@ -1,17 +1,8 @@
-*~
+/log
 
-# temporary files which can be created if a process still has a handle open of a deleted file
-.fuse_hidden*
+/tmp
 
-# KDE directory preferences
-.directory
+test.sh
 
-# Linux trash folder which might appear on any partition or disk
-.Trash-*
-
-# .nfs files are created when an open file is removed but is still being accessed
-.nfs*
-
-/test.sh
 
 
