@@ -9,8 +9,8 @@ function PrintSettings(){
 	echo
 	echo "PARAMS:"
 	echo "	SU ADDRESS: "$SU_IP:$SU_PORT
-	echo "	LOGIN:      "$USER_NAME
-	echo "	PASSWORD:   "$USER_PWD
+	echo "	LOGIN:      "$SU_USER_NAME
+	echo "	PASSWORD:   "$SU_USER_PWD
 	echo "	APP URL:    "$SU_APP_URL
 	echo "	API URL:    "$SU_API_URL
 }
@@ -31,7 +31,7 @@ function LogIn(){
 				$SU_APP_URL"/login" \
 				-H 'accept: application/json' \
 				-H 'Content-Type: application/x-www-form-urlencoded' \
-				-d "username=$USER_NAME&password=$USER_PWD")
+				-d "username=$SU_USER_NAME&password=$SU_USER_PWD")
 	JsonGetKey "$result" '.token'
 }
 
