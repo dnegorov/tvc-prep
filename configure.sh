@@ -1,5 +1,6 @@
 . params.conf
-. functions-api
+. functions.sh
+. functions-api.sh
 
 PrintSettings
 

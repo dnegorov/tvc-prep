@@ -1,6 +1,6 @@
 . params.conf
-. functions
-. functions-api
+. functions.sh
+. functions-api.sh
 
 
 11
