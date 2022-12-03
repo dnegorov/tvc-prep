@@ -32,8 +32,10 @@ function FixForDisableGUI () {
     echo "Comment starting GUI in "$file_path
     sed -i '/XSRUNN/,/fi$/s/^/\#&/' "$file_path"
 
-    echo "Add notification about GUI to "$file_path
-    (echo ; echo 'echo -e "\n\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m\n"') >> "$file_path"
+    
+    local notification=$(echo 'echo -e "\n\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m\n"')
+    echo -e 'Add notification "'"$notification"'" to '"$file_path"
+    ApendFileUniqStr "$notification" "$file_path"
 }
 
 # Disable selinux

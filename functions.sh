@@ -96,6 +96,18 @@ function SetParamListInConfig () {
         done
 }
 
+# Add string to the end of file if not exist
+# Usage:
+# ApendFileUniqStr "String to add" /path/to/file
+function ApendFileUniqStr () {
+    local str_to_add="$1"
+    local file_path="$2"
+    echo ${FUNCNAME[0]}":"
+    echo "Add string: ""$str_to_add"
+    echo "   to file: ""$file_path"
+    grep -qF "$str_to_add" "$file_path"  || echo "$str_to_add" | sudo tee --append "$file_path"
+}
+
 # Format and mount disk for storage
 # Usage:
 # PrepareStorageDisk /device/path /mount/point
@@ -118,7 +130,7 @@ function PrepareStorageDisk () {
 
     echo "Add partition to /etc/fstab: "$partition
     mntstr=$(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0"
-    grep -qF "$mntstr" "/etc/fstab"  || echo "$mntstr" | sudo tee --append "/etc/fstab"
+    ApendFileUniqStr "$mntstr" "/etc/fstab"
     mount -a
 }
 
@@ -152,7 +164,7 @@ function NFSAddShare () {
     echo ${FUNCNAME[0]}":"
     echo "Add path to /etc/exports: "$share_dir
     local share="$share_dir"" ""$share_param"
-    grep -qF "$share" "$exports_file"  || echo "$share" | sudo tee --append "$exports_file"
+    ApendFileUniqStr "$share" "$exports_file"
 }
 
 # Start NFS server and export shares
