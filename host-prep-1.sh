@@ -62,6 +62,6 @@ echo "####################################################"
 
 echo "####################################################"
 echo "#                                                  #"
-echo "#  CHECK AND CHANGE NETWORK INTERFACE              #"
+echo -e "# \033[1;91mCHECK AND CHANGE NETWORK INTERFACE BEFORE REBOOT\033[0m #"
 echo "#                                                  #"
 echo "####################################################"

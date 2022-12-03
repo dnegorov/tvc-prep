@@ -24,6 +24,18 @@ function FixesApplay () {
         done
 }
 
+# Disable start GUI in ssh session
+function FixForDisableGUI () {
+    local file_path="/root/.bashrc"
+    echo ${FUNCNAME[0]}":"
+    # comment lines if ... fi where used variable XSRUNNING
+    echo "Comment starting GUI in "$file_path
+    sed -i '/XSRUNN/,/fi$/s/^/\#&/' "$file_path"
+
+    echo "Add notification about GUI to "$file_path
+    (echo ; echo 'echo -e "\n\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m\n"') >> "$file_path"
+}
+
 # Disable selinux
 function FixForDisableSELinux () {
     local config_file="/etc/selinux/config"

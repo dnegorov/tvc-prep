@@ -117,7 +117,8 @@ function PrepareStorageDisk () {
     mkfs.ext4 -F $partition
 
     echo "Add partition to /etc/fstab: "$partition
-    echo $(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0" >> /etc/fstab
+    mntstr=$(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0"
+    grep -qF "$mntstr" "/etc/fstab"  || echo "$mntstr" | sudo tee --append "/etc/fstab"
     mount -a
 }
 
@@ -133,8 +134,10 @@ function PrepareStorageDirs () {
     local iso_dir="$2"
     local hdd_dir="$3"
     echo ${FUNCNAME[0]}":"
-    echo "Create directories: ""$mount_dir"/{"$iso_dir","$hdd_dir"}
+    echo -n "Create directories: "
+    echo -e "\n ->""$mount_dir"/{"$iso_dir","$hdd_dir"}
     mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
+
     echo "Change owner: "$mount_dir
     chown -R tvc "$mount_dir"
 }
@@ -145,9 +148,11 @@ function PrepareStorageDirs () {
 function NFSAddShare () {
     local share_dir="$1"
     local share_param="$2"
+    local exports_file="/etc/exports"
     echo ${FUNCNAME[0]}":"
     echo "Add path to /etc/exports: "$share_dir
-    echo "$share_dir $share_param" >> /etc/exports
+    local share="$share_dir"" ""$share_param"
+    grep -qF "$share" "$exports_file"  || echo "$share" | sudo tee --append "$exports_file"
 }
 
 # Start NFS server and export shares
