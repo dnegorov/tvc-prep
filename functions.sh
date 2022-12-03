@@ -69,7 +69,7 @@ function SetParamInConfig () {
     echo ${FUNCNAME[0]}":"
     echo "Change config: "$config_file
     echo "    Parameter: "$param_name
-    echo "        Value: "$new_str
+    echo "        Value: "$param_value
     sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
 }
 
