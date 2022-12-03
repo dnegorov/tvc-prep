@@ -22,9 +22,9 @@ function EscapeChars () {
 # in result string all repeatable spaces will be replaced by single space:
 # "Param   Pam    Pam" -> "Param Pam Pam"
 function StrReplace() {
-    string="$1"
-    sub_string="$2"
-    replace_string="$3"
+    local string="$1"
+    local sub_string="$2"
+    local replace_string="$3"
     echo $(echo "$string" | sed 's~'$(EscapeChars "$sub_string")'~'$(EscapeChars "$replace_string")'~g')
 }
 
@@ -34,8 +34,8 @@ function StrReplace() {
 # GetParamLineFromConfig "quarkus.artemis.url" "/opt/tvc/agent/config/application.properties"
 # return: quarkus.artemis.url=tcp://localhost:61616?clientFailureCheckPeriod=5000&retryInterval=1000&reconnectAttempts=5&callTimeout=3000
 function GetParamLineFromConfig () {
-    param_name="$1"
-    config_file="$2"
+    local param_name="$1"
+    local config_file="$2"
     # grep -v '^\s*$\|^#\|^\s*\#' 
     # excludes empty lines 
     # or lines with only spaces, lines beginning with #, 
@@ -48,8 +48,8 @@ function GetParamLineFromConfig () {
 # GetParamValueFromConfig "quarkus.artemis.url" "/opt/tvc/agent/config/application.properties"
 # return: tcp://localhost:61616?clientFailureCheckPeriod=5000&retryInterval=1000&reconnectAttempts=5&callTimeout=3000
 function GetParamValueFromConfig () {
-    param_name="$1"
-    config_file="$2"
+    local param_name="$1"
+    local config_file="$2"
     # awk set delimeter as 'params_name=' and return the end of string
     GetParamLineFromConfig "$param_name" "$config_file" | awk -F"$param_name""=" '{print $2}'
 }
@@ -62,15 +62,16 @@ function GetParamValueFromConfig () {
 # Warninig !!!
 # If parameter does not exist or is commented, it will not be added or changed.
 function SetParamInConfig () {
-    param_name="$1"
-    param_value="$2"
-    config_file="$3"
-    new_str=$(EscapeChars "$param_name"'='"$param_value")
+    local param_name="$1"
+    local param_value="$2"
+    local config_file="$3"
+    local new_str=$(EscapeChars "$param_name"'='"$param_value")
     sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
 }
 
 function SetParamListInConfig () {
     local -n list=$1
+    local config_file
     for param in ${!list[@]}
         do
             echo "Param: "$param
@@ -84,9 +85,9 @@ function SetParamListInConfig () {
 # Example:
 # PrepareStorageDisk /dev/sdb /storage
 function PrepareStorageDisk () {
-    disk_device="$1"
-    mount_dir="$2"
-    partition=$disk_device"1"
+    local disk_device="$1"
+    local mount_dir="$2"
+    local partition=$disk_device"1"
 
     mkdir -p "$mount_dir"
 
@@ -104,9 +105,9 @@ function PrepareStorageDisk () {
 # Example:
 # PrepareStorageDirs /storage iso hdd
 function PrepareStorageDirs () {
-    mount_dir="$1"
-    iso_dir="$2"
-    hdd_dir="$3"
+    local mount_dir="$1"
+    local iso_dir="$2"
+    local hdd_dir="$3"
     mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
     chown -R tvc "$mount_dir"
 }
@@ -115,8 +116,8 @@ function PrepareStorageDirs () {
 # Usage:
 # NFSAddShare /storage/iso $NFS_SHARE_PARAM_FOR_EXPORT
 function NFSAddShare () {
-    share_dir="$1"
-    share_param="$2"
+    local share_dir="$1"
+    local share_param="$2"
     echo "$share_dir $share_param" >> /etc/exports
 }
 
