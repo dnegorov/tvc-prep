@@ -22,12 +22,17 @@ echo
 
 # Ставим Систему Управления
 echo "Install Managment System:"
-dnf install tionix-tvc-broker tionix-tvc-control -y
+dnf -y install tionix-tvc-broker tionix-tvc-control
 echo
 
 # Ставим NetworkManager-tui
 echo "Install NetworkManager-tui:"
-dnf NetworkManager-tui -y
+dnf -y install NetworkManager-tui
+echo
+
+# Ставим вспомогательные пакеты для работы скрипта
+echo "Install curl and jq:"
+dnf -y install curl jq
 echo
 
 # Задаем HOSTNAME
