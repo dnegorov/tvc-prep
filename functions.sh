@@ -7,9 +7,7 @@
 function EscapeChars () {
      echo "$1" | sed -e 's~\([\[\/\.\,\<\>\#\%\(\)\^\:\;\"\*\?\$\@\!\+\=\&-\_\]\|\]\)~\\&~g' | sed -e 's~\ ~\\x20~g' 
 }
-#function EscapeChars () {
-#     echo "$1" | sed -e 's~\ ~\\x20~g' | sed -e 's~.~\\&~g'
-#}
+
 
 
 # Replace change substring in string (using EscapeChars for parameters)
