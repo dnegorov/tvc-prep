@@ -3,9 +3,10 @@
 . functions-api.sh
 
 function FixesApplay () {
-    for fix in ${!FIX_LIST[@]}
+    local -n list=$1
+    for fix in ${!list[@]}
         do
-            func=${FIX_LIST["$fix"]}
+            func=${list["$fix"]}
             echo "========================================="
             echo "Fix:  "$fix 
             echo "Func: "$func
@@ -60,7 +61,6 @@ function FixForBrokerServiceIPv4 () {
     SetParamInConfig "$BROKER_SERVICE_PARAM" "$new_value" "$BROKER_SERVICE_FILE"
     systemctl daemon-reload
 }
-
 
 
 

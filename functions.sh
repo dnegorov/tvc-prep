@@ -69,6 +69,14 @@ function SetParamInConfig () {
     sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
 }
 
+function SetParamListInConfig () {
+    local -n list=$1
+    for param in ${!list[@]}
+        do
+            echo "Param: "$param
+            echo "Value: "${list[$param]}
+        done
+}
 
 # Format and mount disk for storage
 # Usage:
