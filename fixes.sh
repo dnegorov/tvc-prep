@@ -10,6 +10,7 @@
 # ORDER IN LIST NOT FIXED
 function FixesApplay () {
     local -n list=$1
+    echo ${FUNCNAME[0]}":"
     for fix in ${!list[@]}
         do
             func=${list["$fix"]}
@@ -28,7 +29,7 @@ function FixForDisableSELinux () {
     local config_file="/etc/selinux/config"
     local param_name="SELINUX"
     local new_value="disabled"
-    echo "FixForDisableSELinux"
+    echo ${FUNCNAME[0]}":"
     SetParamInConfig "$param_name" "$new_value" "$config_file"
     echo "SELinux: nfs_export_all_rw"
     setsebool -P nfs_export_all_rw 1
@@ -39,7 +40,7 @@ function FixForDisableSELinux () {
 # Can not create storage on local disk
 function FixForLocalStorage () {
     local tvc_dir="/home/tvc/storages"
-    echo "FixForLocalStorage"
+    echo ${FUNCNAME[0]}":"
     echo "Create directory: "$tvc_dir
     mkdir -p "$tvc_dir"
     echo "Change owner: "$tvc_dir
@@ -51,7 +52,7 @@ function FixForNetworkInGrub () {
     local config_file="/etc/default/grub"
     local param_name="GRUB_CMDLINE_LINUX_DEFAULT"
     local new_value='net.ifnames=1 quiet splash'
-    echo "FixForNetworkInGrub"
+    echo ${FUNCNAME[0]}":"
     SetParamInConfig "$param_name" '"'"$new_value"'"' "$config_file"
     echo "Applay GRUB changes: "
     grub2-mkconfig -o /boot/grub2/grub.cfg
@@ -62,7 +63,7 @@ function FixForNetworkManager () {
     local config_file="/etc/NetworkManager/conf.d/enable-auto-eth.conf"
     local param_name="no-auto-default"
     local new_value="*"
-    echo "FixForNetworkManager"
+    echo ${FUNCNAME[0]}":"
     SetParamInConfig "$param_name" "$new_value" "$config_file"
 }
 
@@ -73,7 +74,7 @@ function FixForBrokerServiceIPv4 () {
     local BROKER_SERVICE_ADDED_KEY="-Djava.net.preferIPv4Stack=true"
     local current_value=$(GetParamValueFromConfig "$BROKER_SERVICE_PARAM" "$BROKER_SERVICE_FILE")
     local new_value=$(StrReplace "$current_value" 'java -server' 'java -Djava.net.preferIPv4Stack=true -server')
-    echo "FixForBrokerServiceIPv4"
+    echo ${FUNCNAME[0]}":"
     SetParamInConfig "$BROKER_SERVICE_PARAM" "$new_value" "$BROKER_SERVICE_FILE"
     systemctl daemon-reload
 }

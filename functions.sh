@@ -66,7 +66,7 @@ function SetParamInConfig () {
     local param_value="$2"
     local config_file="$3"
     local new_str=$(EscapeChars "$param_name"'='"$param_value")
-    echo
+    echo ${FUNCNAME[0]}":"
     echo "Change config: "$config_file
     echo "    Parameter: "$param_name
     echo "        Value: "$new_str
@@ -88,7 +88,7 @@ function SetParamInConfig () {
 function SetParamListInConfig () {
     local -n list="$1"
     local config_file="$2"
-    echo
+    echo ${FUNCNAME[0]}":"
     echo "Processing config list for: "$config_file
     for param in ${!list[@]}
         do
@@ -106,7 +106,7 @@ function PrepareStorageDisk () {
     local mount_dir="$2"
     local partition=$disk_device"1"
 
-    echo
+    echo ${FUNCNAME[0]}":"
     echo "Create mount point: "$mount_dir
     mkdir -p "$mount_dir"
 
@@ -132,7 +132,7 @@ function PrepareStorageDirs () {
     local mount_dir="$1"
     local iso_dir="$2"
     local hdd_dir="$3"
-    echo
+    echo ${FUNCNAME[0]}":"
     echo "Create directories: ""$mount_dir"/{"$iso_dir","$hdd_dir"}
     mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
     echo "Change owner: "$mount_dir
@@ -145,14 +145,14 @@ function PrepareStorageDirs () {
 function NFSAddShare () {
     local share_dir="$1"
     local share_param="$2"
-    echo 
+    echo ${FUNCNAME[0]}":"
     echo "Add path to /etc/exports: "$share_dir
     echo "$share_dir $share_param" >> /etc/exports
 }
 
 # Start NFS server and export shares
 function EnableNFS () {
-    echo
+    echo ${FUNCNAME[0]}":"
     echo "Enable and start NFS server:"
     systemctl enable --now nfs-server
     echo "Enable exports:"
