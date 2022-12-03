@@ -69,13 +69,26 @@ function SetParamInConfig () {
     sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
 }
 
+# Set list of parameters in config file
+# Usage:
+# SetParamListInConfig param_list /path/to/config
+#
+# Param_list declaration: 
+# declare -A param_list=(
+#    ["param_name1"]="param_value1"
+#    ["param_name2"]="param_value2"
+# )
+#
+# Warninig !!!
+# If parameter does not exist or is commented, it will not be added or changed.
 function SetParamListInConfig () {
-    local -n list=$1
-    local config_file
+    local -n list="$1"
+    local config_file="$2"
     for param in ${!list[@]}
         do
             echo "Param: "$param
             echo "Value: "${list[$param]}
+            SetParamInConfig "$param" "${list[$param]}" "$config_file"
         done
 }
 
