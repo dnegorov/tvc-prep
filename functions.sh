@@ -66,6 +66,10 @@ function SetParamInConfig () {
     local param_value="$2"
     local config_file="$3"
     local new_str=$(EscapeChars "$param_name"'='"$param_value")
+    echo
+    echo "Change config: "$config_file
+    echo "    Parameter: "$param_name
+    echo "        Value: "$new_str
     sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
 }
 
@@ -84,10 +88,10 @@ function SetParamInConfig () {
 function SetParamListInConfig () {
     local -n list="$1"
     local config_file="$2"
+    echo
+    echo "Processing config list for: "$config_file
     for param in ${!list[@]}
         do
-            echo "Param: "$param
-            echo "Value: "${list[$param]}
             SetParamInConfig "$param" "${list[$param]}" "$config_file"
         done
 }
@@ -102,10 +106,17 @@ function PrepareStorageDisk () {
     local mount_dir="$2"
     local partition=$disk_device"1"
 
+    echo
+    echo "Create mount point: "$mount_dir
     mkdir -p "$mount_dir"
 
+    echo "Create partition on: "$disk_device
     parted $disk_device -s mktable gpt mkpart primary ext4 1M 100%
+    
+    echo "Format partition: "$partition
     mkfs.ext4 $partition
+
+    echo "Add partition to /etc/fstab: "$partition
     echo $(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0" >> /etc/fstab
     mount -a
 }
@@ -121,7 +132,10 @@ function PrepareStorageDirs () {
     local mount_dir="$1"
     local iso_dir="$2"
     local hdd_dir="$3"
+    echo
+    echo "Create directories: ""$mount_dir"/{"$iso_dir","$hdd_dir"}
     mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
+    echo "Change owner: "$mount_dir
     chown -R tvc "$mount_dir"
 }
 
@@ -131,12 +145,17 @@ function PrepareStorageDirs () {
 function NFSAddShare () {
     local share_dir="$1"
     local share_param="$2"
+    echo 
+    echo "Add path to /etc/exports: "$share_dir
     echo "$share_dir $share_param" >> /etc/exports
 }
 
 # Start NFS server and export shares
 function EnableNFS () {
+    echo
+    echo "Enable and start NFS server:"
     systemctl enable --now nfs-server
+    echo "Enable exports:"
     exportfs -a
 }
 
