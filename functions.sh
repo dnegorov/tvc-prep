@@ -114,7 +114,7 @@ function PrepareStorageDisk () {
     parted $disk_device -s mktable gpt mkpart primary ext4 1M 100%
     
     echo "Format partition: "$partition
-    mkfs.ext4 $partition
+    mkfs.ext4 -F $partition
 
     echo "Add partition to /etc/fstab: "$partition
     echo $(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0" >> /etc/fstab
