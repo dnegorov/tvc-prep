@@ -5,8 +5,12 @@
 # var="192.168.1.1"
 # EscapeChars "$var"
 function EscapeChars () {
-     echo $1 | sed -e 's/\([\[\/\.\,\<\>\#\%\(\)\^\:\;\ \"\~\*\?\$\@\!\+\=\&-\]\|\]\)/\\&/g'
+     echo "$1" | sed -e 's~\([\[\/\.\,\<\>\#\%\(\)\^\:\;\"\*\?\$\@\!\+\=\&-\_\]\|\]\)~\\&~g' | sed -e 's~\ ~\\x20~g' 
 }
+#function EscapeChars () {
+#     echo "$1" | sed -e 's~\ ~\\x20~g' | sed -e 's~.~\\&~g'
+#}
+
 
 # Replace change substring in string (using EscapeChars for parameters)
 # Usage:
@@ -20,7 +24,10 @@ function EscapeChars () {
 # in result string all repeatable spaces will be replaced by single space:
 # "Param   Pam    Pam" -> "Param Pam Pam"
 function StrReplace() {
-    echo $(echo "$1" | sed 's/'$(EscapeChars $2)'/'$(EscapeChars $3)'/g')
+    string="$1"
+    sub_string="$2"
+    replace_string="$3"
+    echo $(echo "$string" | sed 's~'$(EscapeChars "$sub_string")'~'$(EscapeChars "$replace_string")'~g')
 }
 
 
@@ -57,10 +64,60 @@ function GetParamValueFromConfig () {
 # Warninig !!!
 # If parameter does not exist or is commented, it will not be added or changed.
 function SetParamInConfig () {
-    param_name=$1
-    param_value=$2
-    config_file=$3
-    sed -i 's/^'$(EscapeChars "$param_name")'=.*/'$(EscapeChars "$param_name")'\='$(EscapeChars "$param_value")'/g' "$config_file"
+    param_name="$1"
+    param_value="$2"
+    config_file="$3"
+    new_str=$(EscapeChars "$param_name"'='"$param_value")
+    sed -i 's~^'$(EscapeChars $param_name)'=.*~'$new_str'~g' "$config_file"
+}
+
+
+# Format and mount disk for storage
+# Usage:
+# PrepareStorageDisk /device/path /mount/point
+# Example:
+# PrepareStorageDisk /dev/sdb /storage
+function PrepareStorageDisk () {
+    disk_device="$1"
+    mount_dir="$2"
+    partition=$disk_device"1"
+
+    mkdir -p "$mount_dir"
+
+    parted $disk_device -s mktable gpt mkpart primary ext4 1M 100%
+    mkfs.ext4 $partition
+    echo $(blkid $partition | awk '{print $2}')" $mount_dir ext4 rw,seclabel,relatime 0 0" >> /etc/fstab
+    mount -a
+}
+
+
+
+# Prepare storage dirs
+# Usage:
+# PrepareStorageDirs /disk/mount/point iso_dir_name hdd_dir_name
+# Example:
+# PrepareStorageDirs /storage iso hdd
+function PrepareStorageDirs () {
+    mount_dir="$1"
+    iso_dir="$2"
+    hdd_dir="$3"
+    mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
+    chown -R tvc "$mount_dir"
+}
+
+# Prepare NFS share
+# Usage:
+# NFSAddShare /storage/iso $NFS_SHARE_PARAM_FOR_EXPORT
+function NFSAddShare () {
+    share_dir="$1"
+    share_param="$2"
+    echo "$share_dir $share_param" >> /etc/exports
+}
+
+# Start NFS server and export shares
+function EnableNFS () {
+    systemctl enable --now nfs-server
+    exportfs -a
 }
 
 
