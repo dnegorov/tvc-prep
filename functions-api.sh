@@ -96,7 +96,7 @@ function GetMasterRealmID(){
 # GetDCID "default"
 function GetDCID(){
 	local dc_name=$1
-	local query="in%28dcName%2C"$1"%29"
+	local query=$(UrlEncode "in(dcName,""$dc_name"")")
 	local url="/dcs?query=$query"
 
 	local result=$(CurlGet "$url")
@@ -202,7 +202,7 @@ function CreateNFSStorage(){
 function GetStorageId(){
 	local dc_id=$1
 	local stor_name=$2
-	local query='in%28storageName%2C'$stor_name'%29'
+	local query=$(UrlEncode "in(storName,""$stor_name"")")
 	local url="/dcs/$dc_id/storages?query=$query"
 	
 	local result=$(CurlGet "$url")
@@ -251,6 +251,12 @@ function DCTemplate () {
 	echo $template
 }
 
+
+# Usage:
+# CreateDC "DC-name" "DC-description" "is local (true/false)" "MAC ADDRESS POOL ID" "MAXIMUM HOSTS IN DC"
+# Examples:
+# Create local DC
+# CreateDC "Local-DC" "Local-DC-new" "true" "98c4d393-af2b-442b-918d-db40d7e8acf3" "2000"
 function CreateDC () {
 	local url="/dcs"
 	local dc_name="$1"
