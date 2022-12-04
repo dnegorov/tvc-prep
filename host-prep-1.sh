@@ -59,6 +59,17 @@ NFSAddShare "$STOR_PATH"/"$STOR_DIR_ISO" $NFS_SHARE_PARAM_FOR_EXPORT
 EnableNFS
 echo
 
+# Готовим конфиг для BROKER
+SetParamListInConfig broker_config "$BROKER_CONFIG_FILE"
+
+# Готовим конфиг для CONTROL
+SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
+
+# Готовим ПРЕДВАРИТЕЛЬНЫЙ конфиг для AGENT
+SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
+
+
+
 echo "####################################################"
 echo "#                                                  #"
 echo "#  STAGE 1: COMPLETE                               #"
