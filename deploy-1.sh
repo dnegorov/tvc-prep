@@ -30,7 +30,7 @@ echo "Install NetworkManager-tui:"
 dnf -y install NetworkManager-tui
 echo
 
-# Ставим вспомогательные пакеты для работы скрипта
+# Ставим вспомогательные пакеты для работы скриптов
 echo "Install curl and jq:"
 dnf -y install curl jq
 echo
@@ -67,7 +67,6 @@ SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
 
 # Готовим ПРЕДВАРИТЕЛЬНЫЙ конфиг для AGENT
 SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
-
 
 echo "####################################################"
 echo "#                                                  #"
