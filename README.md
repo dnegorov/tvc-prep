@@ -6,6 +6,9 @@
 1. **jq** : Command-line JSON processor
 2. **curl** : A utility for getting files from remote servers (FTP, HTTP, and others)
 
+## vCore API
+
+/apidoc/index.html
 
 
 

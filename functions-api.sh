@@ -1,5 +1,7 @@
 . params.conf
 
+# full description is here /apidoc/index.html
+
 CURL_GET="curl -s -X GET"
 CURL_POST="curl -s -X POST"
 SU_API_URL="http://$SU_IP:$SU_PORT/api/realms/$REALM"
@@ -15,7 +17,7 @@ function PrintSettings(){
 	echo "	API URL:    "$SU_API_URL
 }
 
-
+# Return key from json
 # Usage:
 # JsonGetKey ".key_name"
 # Examples:
@@ -25,6 +27,19 @@ function JsonGetKey(){
 	echo $(echo $1 | jq -r $2)
 }
 
+# Return urlencoded sting
+# Usage:
+# UrlEncode 'P@$$w0rd'
+# return: P%40%24%24w0rd
+# UrlEncode 'Пароль'
+# return: %D0%9F%D0%B0%D1%80%D0%BE%D0%BB%D1%8C
+UrlEncode() {
+  local string="${1}"
+  local encoded=$(echo "$string" | \
+  				  curl -Gso /dev/null -w %{url_effective} --data-urlencode @- "" \
+				  | sed -E 's/..(.*).../\1/')
+  echo "${encoded}"
+}
 
 function LogIn(){
 	local result=$($CURL_POST \
@@ -56,6 +71,16 @@ function CurlPost(){
 	echo $result
 }
 
+function AppInit () {
+	local url="/app/init"
+	local data="lastname=""$(UrlEncode "$SU_LAST_NAME")""&firstname=""$(UrlEncode "$SU_FIRST_NAME")""&patronymic=""$(UrlEncode "$SU_PATRONYMIC")""&email=""$(UrlEncode "$SU_USER_EMAIL")""&password=""$(UrlEncode "$SU_USER_PWD")""&confirmPassword=""$(UrlEncode "$SU_USER_PWD")"
+	local result=$($CURL_POST \
+				   http://$SU_IP:$SU_PORT"/""$url" \
+				   -H 'accept: application/json' \
+				   -H 'Content-Type: application/x-www-form-urlencoded' \
+				   -d "$data")
+	echo $result
+}
 
 # Usage:
 # GetMasterRealmID
@@ -182,4 +207,60 @@ function GetStorageId(){
 	
 	local result=$(CurlGet "$url")
 	JsonGetKey "$result" '.[0].id.id'
+}
+
+
+function GetMacPoolId () {
+	local pool_name="$1"
+	local query=$(UrlEncode "in(poolName,""$pool_name"")")
+	local url="/mac-address-pools?query=""$query"
+	local result=$(CurlGet "$url")
+	JsonGetKey "$result" '.[0].id'
+}
+
+
+# Usage:
+# DCTemplate "DC-name" "DC-description" "is local (true/false)" "MAC ADDRESS POOL ID" "MAXIMUM HOSTS IN DC"
+# Examples:
+# Create local DC
+# DCTemplate "Local-DC" "Local-DC-new" "true" "98c4d393-af2b-442b-918d-db40d7e8acf3" "2000"
+function DCTemplate () {
+	local dc_name="$1"
+	local dc_description="$2"
+	local dc_local="$3"
+	local dc_mac_address_pool="$4"
+	local dc_max_hosts="$5"
+	local template='{
+					"dcDescription": "'$dc_description'",
+					"dcName": "'$dc_name'",
+					"eventSettings": [
+						{
+						"category": "DCS",
+						"daysCount": 365,
+						"id": {
+							"dcId": "19865dec-e6f8-4834-a23e-54bf4d493166",
+							"id": "19865dec-e6f8-4834-a23e-54bf4d493166"
+						}
+						}
+					],
+					"local": '$dc_local',
+					"macAddressPoolId": "'$dc_mac_address_pool'",
+					"maxHostsCount": '$dc_max_hosts'
+					}'
+
+	echo $template
+}
+
+function CreateDC () {
+	local url="/dcs"
+	local dc_name="$1"
+	local dc_description="$2"
+	local dc_local="$3"
+	local dc_mac_address_pool="$4"
+	local dc_max_hosts="$5"
+	# DCTemplate "Local-DC" "Local-DC-new" "true" "98c4d393-af2b-442b-918d-db40d7e8acf3" "2000"
+	local data=$(DCTemplate "$dc_name" "$dc_description" "$dc_local" "$dc_mac_address_pool" "$dc_max_hosts")
+	#echo LOG: $data
+	local result=$(CurlPost "$url" "$data")
+	echo $result
 }

@@ -61,12 +61,15 @@ echo
 
 # Готовим конфиг для BROKER
 SetParamListInConfig broker_config "$BROKER_CONFIG_FILE"
+echo
 
 # Готовим конфиг для CONTROL
 SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
+echo
 
 # Готовим ПРЕДВАРИТЕЛЬНЫЙ конфиг для AGENT
 SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
+echo
 
 # Готовим конфиг для SANLOCK
 SetParamListInConfig sanlock_config "$SANLOCK_CONFIG_FILE"
