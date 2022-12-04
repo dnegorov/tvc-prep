@@ -7,7 +7,9 @@
 # FixesApplay LIST_OF_FIXES
 #
 # WARNING !!!
-# ORDER IN LIST NOT FIXED
+# ORDER OF APPLAYING IS RANDOM!!!
+# If some fixes must be applayed in fixed order, 
+# remove it from common list and add it manualy to one of deploy scripts.
 function FixesApplay () {
     local -n list=$1
     echo ${FUNCNAME[0]}":"
