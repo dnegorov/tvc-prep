@@ -69,7 +69,6 @@ SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
 SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
 
 
-
 echo "####################################################"
 echo "#                                                  #"
 echo "#  STAGE 1: COMPLETE                               #"
