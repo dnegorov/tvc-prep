@@ -68,6 +68,10 @@ SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
 # Готовим ПРЕДВАРИТЕЛЬНЫЙ конфиг для AGENT
 SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
 
+# Готовим конфиг для SANLOCK
+SetParamListInConfig sanlock_config "$SANLOCK_CONFIG_FILE"
+
+echo
 echo "####################################################"
 echo "#                                                  #"
 echo "#  STAGE 1: COMPLETE                               #"
