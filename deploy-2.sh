@@ -38,7 +38,7 @@ echo
 echo "GET INFO ABOUT REALM: "$REALM
 # Получаем REALM_ID (корень СУ)
 REALM_ID=$(GetMasterRealmID)
-echo "           Realm_ID:   ""$REALM_ID"
+echo " Realm_ID:            ""$REALM_ID"
 # Получаем MAC_POOL_ID (дефолтный)
 MAC_POOL_ID=$(GetMacPoolId 'По умолчанию')
 echo " Default MAC pool ID: "$MAC_POOL_ID

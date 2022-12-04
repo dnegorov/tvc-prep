@@ -300,7 +300,8 @@ function AddHostToCluster () {
 	local host_id="$1"
 	local cluster_id="$2"
 	local dc_id="$3"
-	local "url=/dcs/""$dc_id""/hosts/""$host_id""/joinCluster/""$cluster_id"
+	local url="/dcs/""$dc_id""/hosts/""$host_id""/joinCluster/""$cluster_id"
+	echo 
 	local result=$(CurlPut "$url")
 	echo $result
 }
@@ -311,7 +312,7 @@ function AddHostToCluster () {
 function ActivateHost () {
 	local host_id="$1"
 	local dc_id="$2"
-	local "url=/dcs/""$dc_id""/hosts/""$host_id""/activate"
+	local url="/dcs/""$dc_id""/hosts/""$host_id""/activate"
 	local result=$(CurlPut "$url")
 	echo $result
 }
