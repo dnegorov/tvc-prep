@@ -93,6 +93,14 @@ function FixForBrokerServiceIPv4 () {
     systemctl daemon-reload
 }
 
-
+# Prepare MANAGMENT network interface
+function FixForManagmentIF () {
+    echo ${FUNCNAME[0]}":"
+    local if_dir="/etc/NetworkManager/system-connections"
+    echo "Remove all configs in: ""$if_dir"
+    rm -rf "$if_dir""/*.nmconnection"
+    echo "Create config for: ""$HOST_NET_MANAGMENT_IF_NAME"
+    echo "$IF_MANAGMENT_CONFIG" > "$if_dir"/"$HOST_NET_MANAGMENT_IF_NAME"".nmconnection"
+}
 
 
