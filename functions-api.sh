@@ -4,6 +4,7 @@
 
 CURL_GET="curl -s -X GET"
 CURL_POST="curl -s -X POST"
+CURL_PUT="curl -s -X PUT"
 SU_API_URL="http://$SU_IP:$SU_PORT/api/realms/$REALM"
 SU_APP_URL="http://$SU_IP:$SU_PORT/app/realms/$REALM"
 
@@ -53,7 +54,7 @@ function LogIn(){
 function CurlGet(){
 	local url=$1
 	local result=$($CURL_GET \
-				"$SU_API_URL""$1" \
+				"$SU_API_URL""$url" \
 				-H 'accept: application/json' \
 				-H "Authorization: Bearer $(LogIn)")
 	echo $result
@@ -63,12 +64,23 @@ function CurlPost(){
 	local url=$1
 	local data="$2"
 	local result=$($CURL_POST \
-				"$SU_API_URL""$1" \
+				"$SU_API_URL""$url" \
 				-H 'accept: */*' \
 				-H "Authorization: Bearer $(LogIn)" \
 				-H 'Content-Type: application/json' \
 				-d "$data")
 	echo $result
+}
+
+function CurlPut () {
+	local url=$1
+	local result=$($CURL_PUT \
+				"$SU_API_URL""$url" \
+				-H 'accept: */*' \
+				-H "Authorization: Bearer $(LogIn)" \
+				-H 'Content-Type: application/json')
+	echo $result
+
 }
 
 function AppInit () {
@@ -269,4 +281,48 @@ function CreateDC () {
 	#echo LOG: $data
 	local result=$(CurlPost "$url" "$data")
 	echo $result
+}
+
+
+function GetClusterID () {
+	local cluster_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(clusterName,""$cluster_name"")")
+	local url="/dcs/""$dc_id""/clusters?query=""$query"
+	local result=$(CurlGet "$url")
+	JsonGetKey "$result" '.[0].id.id'
+}
+
+# Add host to clusster in DC
+# Usage:
+# AddHostToCluster "HOST_ID" "CLUSTER_ID" "DC_ID"
+function AddHostToCluster () {
+	local host_id="$1"
+	local cluster_id="$2"
+	local dc_id="$3"
+	local "url=/dcs/""$dc_id""/hosts/""$host_id""/joinCluster/""$cluster_id"
+	local result=$(CurlPut "$url")
+	echo $result
+}
+
+# Activate host
+# Usage:
+# ActivateHost "HOST_ID" "DC_ID"
+function ActivateHost () {
+	local host_id="$1"
+	local dc_id="$2"
+	local "url=/dcs/""$dc_id""/hosts/""$host_id""/activate"
+	local result=$(CurlPut "$url")
+	echo $result
+}
+
+# Activate host
+# Usage:
+# GetHostStatus "HOST_ID" "DC_ID"
+function GetHostStatus () {
+	local host_id="$1"
+	local dc_id="$2"
+	local "url=/dcs/""$dc_id""/hosts/""$host_id"
+	local result=$(CurlGet "$url")
+	JsonGetKey "$result" '.hostStatus'
 }

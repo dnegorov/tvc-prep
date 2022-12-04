@@ -54,6 +54,7 @@ DC_ID=$(GetDCID "$DC_NAME")
 echo "DC_ID: "$DC_ID
 echo
 
+
 # СОХРАНЯЕМ DC_ID В КОНФИГ АГЕНТА
 SetParamInConfig "agent.dc-id" "$DC_ID" "$AGENT_CONFIG_FILE"
 # Сохраняем DC_ID в vcore-deploy.config
@@ -72,6 +73,21 @@ echo "Wait AGENT"
 sleep 5
 echo
 
+# ДОБАВЛЯЕМ НАШ УЗЕЛ В НАШ ДЦ
+echo "Add host to cluster:"
+# Получаем CLUSTER_ID дефолтного кластера в нашем ДЦ
+CLUSTER_ID=$(GetClusterID 'Основной' "$DC_ID")
+echo " Cluster ID:  "$CLUSTER_ID
+# Добавляем узел в кластер
+echo " Add host:"
+echo " result:      "$(AddHostToCluster "$AGENT_NODE_ID" "$CLUSTER_ID" "$DC_ID")
+echo " Wait host"
+sleep 5
+echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
+# Активируем узел
+echo " Activate host:"
+echo " result:      "$(ActivateHost "$AGENT_NODE_ID" "$DC_ID")
+echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
 
 
 
