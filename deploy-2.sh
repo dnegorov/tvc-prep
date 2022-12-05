@@ -28,7 +28,9 @@ echo
 
 # Готовим конфиг для SANLOCK
 SetParamListInConfig sanlock_config "$SANLOCK_CONFIG_FILE"
+echo
 
+echo
 # ЗАПУСКАЕМ СЕРВИСЫ
 # BROKER всегда первый
 echo "Start BROKER..."
@@ -77,13 +79,18 @@ SetParamInConfig "agent.dc-id" "$DC_ID" "$COMMON_PARAMS_CONFIG_FILE"
 
 echo
 # СТАРТУЕМ SANLOCK СЕРВИС
-systemctl enable --now sanlock || (echo "Start SANLOCK failed"; exit 1)
+echo "Enable SANLOCK service..."
+systemctl enable sanlock || (echo "Enable SANLOCK failed"; exit 1)
+echo "Start SANLOCK service..."
+systemctl restart sanlock || (echo "Restart SANLOCK failed"; exit 1)
 echo "Wait SANLOC 5 sec..."
 sleep 5
 echo
 
 # СТАРТУЕМ AGENT СЕРВИС
+echo "Enable AGENT service..."
 systemctl enable tionix-tvc-agent || (echo "Enable AGENT failed"; exit 1)
+echo "Restart AGENT service..."
 systemctl restart tionix-tvc-agent || (echo "Restart AGENT failed"; exit 1)
 echo "Wait AGENT 5 sec..."
 sleep 5
