@@ -1,6 +1,7 @@
 . params.conf
 
-# full description is here /apidoc/index.html
+# Full API description is here
+# http://HOST_IP:8082/apidoc/index.html
 
 CURL_GET="curl -s -X GET"
 CURL_POST="curl -s -X POST"
@@ -42,6 +43,19 @@ UrlEncode() {
   echo "${encoded}"
 }
 
+# Return security token
+# Used params from global config
+# Usage:
+# token=$(LogIn)
+# Return: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI4NTIzZDk4Ny04MzNjLTQ4NmItOTM0Ni05ZjlmN2ZmZTJhZGMiLCJyb2xlcyI6WyJhZG1pbiJdLCJhdXRoX3RpbWUiOjE2NzAyMzIwNTcsImlzcyI6Imh0dHA6XC9cLzE5Mi4xNjguMTgwLjYwOjgwODJcL2FwcFwvcmVhbG1zXC9tYXN0ZXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbiIsImdpdmVuX25hbWUiOiJBZG1pbm92IiwibWlkZGxlX25hbWUiOiJBZG1pbm92aWNoIiwiZXhwIjoxNjcwMjMyMTE3LCJmYW1pbHlfbmFtZSI6IkFkbWluIiwiaWF0IjoxNjcwMjMyMDU3LCJqdGkiOiI3MGFiNTQ1Yy1kMjQyLTRjYmEtYTVlMC00YzkxNDE2Njc0OWUiLCJlbWFpbCI6InN1cHBvcnRAc2thbGEtci5ydSJ9.DngmaitZk-sOh6UC0-9u0-NHAU2oAFlMC4U7DAib_iW8S0MbnH-ENAlTClHAx2uOKkUI47aLC6CRqHrLIZvxRb5Wc3TdLigSLJmwxubhrGT6jvYOjyKA5xQ66Lkk_HycfoY_7f-Sh04txebEYQO8je30qXKeAKjQpZi5Kq17achC9k10SB7vn9erylTnn6vYiOWjxulbA3ckdct6XPgZh3k5OxGUcJ_9fsyDrA1eNk1XxI8WviB1Kh_PqroBrii5wjFMrvjnXbg-0F6e0SE0E4wJA8PVkcHt_DzKUNLCKgKGu2fDZehfj69mONQelw3EBhzO8mK-sBb0sYmr_PLSGA
+# Function used in:
+# 	CurlGet
+#	CurlPost
+#	CurlPut
+# Get token for use in http://HOST_IP:8082/apidoc/index.html do in console:
+# . functions-api.sh
+# echo $(LogIn)
+# Copy token and paste to Authorization field
 function LogIn(){
 	local result=$($CURL_POST \
 				$SU_APP_URL"/login" \
@@ -51,6 +65,11 @@ function LogIn(){
 	JsonGetKey "$result" '.token'
 }
 
+# Do curl -X GET
+# Usage:
+# CurlGet "/API/FUNCTION/REQUST"
+# Example:
+# CurlGet "/dcs/$dc_id/storages?query=$query"
 function CurlGet(){
 	local url=$1
 	local result=$($CURL_GET \
@@ -60,6 +79,11 @@ function CurlGet(){
 	echo $result
 }
 
+# Do curl -X POST
+# Usage:
+# CurlPost "/API/FUNCTION/REQUST"
+# Example:
+# CurlPost "/dcs/$dc_id/storages?hostId=$host_id"
 function CurlPost(){
 	local url=$1
 	local data="$2"
@@ -72,6 +96,11 @@ function CurlPost(){
 	echo $result
 }
 
+# Do curl -X PUT
+# Usage:
+# CurlPut "/API/FUNCTION/REQUST"
+# Example:
+# CurlPut ""/dcs/""$dc_id""/hosts/""$host_id""/activate""
 function CurlPut () {
 	local url=$1
 	local result=$($CURL_PUT \
@@ -83,6 +112,9 @@ function CurlPut () {
 
 }
 
+# Init admin user with params in global config
+# Usage:
+# AppInit
 function AppInit () {
 	local url="/app/init"
 	local data="lastname=""$(UrlEncode "$SU_LAST_NAME")""&firstname=""$(UrlEncode "$SU_FIRST_NAME")""&patronymic=""$(UrlEncode "$SU_PATRONYMIC")""&email=""$(UrlEncode "$SU_USER_EMAIL")""&password=""$(UrlEncode "$SU_USER_PWD")""&confirmPassword=""$(UrlEncode "$SU_USER_PWD")"
@@ -266,7 +298,9 @@ function CreateLocalStorage(){
 	echo $result
 }
 
-
+# Get storage ID
+# Usage:
+# GetStorageStatus "DC_ID" "Storage Name"
 function GetStorageId(){
 	local dc_id=$1
 	local stor_name=$2
@@ -289,7 +323,9 @@ function GetStorageStatus () {
 }
 
 
-
+# Get MAC pool ID
+# Usage:
+# GetMacPoolId "Pool Name"
 function GetMacPoolId () {
 	local pool_name="$1"
 	local query=$(UrlEncode "in(poolName,""$pool_name"")")
@@ -351,7 +387,9 @@ function CreateDC () {
 	echo $result
 }
 
-
+# Get Cluster ID
+# Usage:
+# GetMacPoolId "Cluster Name" "DC_ID"
 function GetClusterID () {
 	local cluster_name="$1"
 	local dc_id="$2"
@@ -408,4 +446,78 @@ function SetHostSPM () {
 	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
 	echo $result
+}
+
+# Get Network ID
+# Usage:
+# GetMacPoolId "Network Name" "DC_ID"
+function GetNetworkID () {
+	local network_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(networkName,""$network_name"")")
+	local url="/dcs/""$dc_id""/networks?query=""$query"
+	local result=$(CurlGet "$url")
+	JsonGetKey "$result" '.[0].id.id'
+}
+
+# Get network properties
+# Usage:
+# GetNetwork "Network_ID" "DC_ID"
+# Return: NetworkEntity in JSON 
+function GetNetwork () {
+	local net_id="$1"
+	local dc_id="$2"
+	local url="/dcs/""$dc_id""/networks/""$net_id"
+	local result=$(CurlGet "$url")
+	echo $result
+}
+
+# Get network parameter
+# Usage:
+# GetNetworkParameter "NetworkEntity in JSON" "Param Name"
+# Return: value string 
+# Example:
+# GetNetworkParameter "$(GetNetwork $(GetNetworkID "tvcmgmt" "$DC_ID") "$DC_ID")" ".networkName"
+# Return: tvcmgmt
+# Parameters examples:
+# root of JSON . = {}
+# {"param":"value"}
+# .param = "value"
+# {"param":{"subParam1":"value1", "subParam2":"value2"}}
+# .param.subParam1 = "value1"
+# {"list":["192.168.10.10", "192.168.10.11"]}
+# .list[0] = "192.168.10.10"
+# {[{"param":{"subParam1":"value1", "subParam2":"value2"}}, {"param":{"subParam1":"value3", "subParam2":"value4"}}]}
+# .[1].param.subParam2 = "value4"
+function GetNetworkParameter () {
+	local network="$1"
+	local param_name="$2"
+	JsonGetKey "$network" "$param_name"
+}
+
+
+#function SetNetworkParameter () {
+#	local network="$1"
+#	local param_name="$2"
+#	local new_value="3"
+#	local rsult=$(jq)
+#}
+
+
+function GetDCparams () {
+
+	local dc_id=$(GetDCID "$DC_NAME")
+	local cluster_id=$(GetClusterID 'Основной' "$dc_id")
+	local mgmtnet_id=$(GetNetworkID 'tvcmgmt' "$dc_id")
+	echo
+	echo "Security token: "
+	echo $(LogIn)
+	echo
+	echo "DC Parameters"
+	echo " DC name:        "$DC_NAME
+	echo " DC-ID:          "$dc_id
+	echo " Cluster ID:     "$cluster_id
+	echo " Host ID:        "$AGENT_NODE_ID
+	echo " tvcmgmt Net ID: "$mgmtnet_id
+	echo 
 }
