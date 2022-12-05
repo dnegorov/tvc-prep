@@ -14,6 +14,21 @@ echo "####################################################"
 echo
 echo
 
+# Готовим конфиг для BROKER
+SetParamListInConfig broker_config "$BROKER_CONFIG_FILE"
+echo
+
+# Готовим конфиг для CONTROL
+SetParamListInConfig control_config "$CONTROL_CONFIG_FILE"
+echo
+
+# Готовим ПРЕДВАРИТЕЛЬНЫЙ конфиг для AGENT
+SetParamListInConfig agent_config "$AGENT_CONFIG_FILE"
+echo
+
+# Готовим конфиг для SANLOCK
+SetParamListInConfig sanlock_config "$SANLOCK_CONFIG_FILE"
+
 # ЗАПУСКАЕМ СЕРВИСЫ
 # BROKER всегда первый
 echo "Start BROKER..."
@@ -25,7 +40,7 @@ systemctl enable --now tionix-tvc-control  || (echo "Start CONTROL failed"; exit
 echo
 
 # Ждем ответа WEB-Interface
-echo "Wait for WEB-Interface"
+echo "Wait for WEB-Interface 10 sec..."
 sleep 10
 echo
 
@@ -63,14 +78,14 @@ SetParamInConfig "agent.dc-id" "$DC_ID" "$COMMON_PARAMS_CONFIG_FILE"
 echo
 # СТАРТУЕМ SANLOCK СЕРВИС
 systemctl enable --now sanlock || (echo "Start SANLOCK failed"; exit 1)
-echo "Wait SANLOC"
+echo "Wait SANLOC 5 sec..."
 sleep 5
 echo
 
 # СТАРТУЕМ AGENT СЕРВИС
 systemctl enable tionix-tvc-agent || (echo "Enable AGENT failed"; exit 1)
 systemctl restart tionix-tvc-agent || (echo "Restart AGENT failed"; exit 1)
-echo "Wait AGENT"
+echo "Wait AGENT 5 sec..."
 sleep 5
 echo
 
@@ -82,7 +97,7 @@ echo " Cluster ID:  "$CLUSTER_ID
 # Добавляем узел в кластер
 echo " Add host..."
 echo " result:      "$(AddHostToCluster "$AGENT_NODE_ID" "$CLUSTER_ID" "$DC_ID")
-echo " Wait host"
+echo " Wait host 5 sec..."
 sleep 5
 echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
 # Активируем узел
@@ -96,12 +111,23 @@ echo " result:      "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
 echo
 # СОЗДАЕМ ЛОКАЛЬНУЮ ШАРУ ДЛЯ ВМ
 echo "Create LOCAL storage for HDD..."
-echo " result: "$(CreateLocalStorage "$STOR_HDD_NAME" "true" "$STOR_PATH_HDD" "DATA" "$DC_ID")
+echo " result:     "$(CreateLocalStorage "$STOR_HDD_NAME" "true" "$STOR_PATH_HDD" "DATA" "$DC_ID" "$AGENT_NODE_ID")
+LOCAL_STORAGE_ID=$(GetStorageId "$DC_ID" "$STOR_HDD_NAME")
+echo " storage ID: "$LOCAL_STORAGE_ID
+echo " wait 15 sec..."
+sleep 15
+echo " status: "$(GetStorageStatus "$LOCAL_STORAGE_ID" "$DC_ID")
 
 echo
 # СОЗДАЕМ NFS ШАРУ ДЛЯ ISO
 echo "Create NFS share for ISO..."
-echo " result: "$(CreateNFSStorage "$DC_ID" "$AGENT_NODE_ID" "$STOR_ISO_NAME" "false" "$STOR_SRV_IP" "$STOR_PATH_ISO" "ISO")
+echo " result:     "$(CreateNFSStorage "$DC_ID" "$AGENT_NODE_ID" "$STOR_ISO_NAME" "false" "$STOR_SRV_IP" "$STOR_PATH_ISO" "ISO")
+ISO_STORAGE_ID=$(GetStorageId "$DC_ID" "$STOR_ISO_NAME")
+echo " storage ID: "$ISO_STORAGE_ID
+echo " wait 15 sec..."
+sleep 15
+echo " status: "$(GetStorageStatus "$ISO_STORAGE_ID" "$DC_ID")
+
 
 
 

@@ -270,12 +270,24 @@ function CreateLocalStorage(){
 function GetStorageId(){
 	local dc_id=$1
 	local stor_name=$2
-	local query=$(UrlEncode "in(storName,""$stor_name"")")
+	local query=$(UrlEncode "in(storageName,""$stor_name"")")
 	local url="/dcs/$dc_id/storages?query=$query"
-	
 	local result=$(CurlGet "$url")
 	JsonGetKey "$result" '.[0].id.id'
 }
+
+
+# Get storage status
+# Usage:
+# GetStorageStatus "STOR_ID" "DC_ID"
+function GetStorageStatus () {
+	local stor_id="$1"
+	local dc_id="$2"
+	local "url=/dcs/""$dc_id""/storages/""$stor_id"
+	local result=$(CurlGet "$url")
+	JsonGetKey "$result" '.storageStatus'
+}
+
 
 
 function GetMacPoolId () {
