@@ -194,17 +194,73 @@ function NFSStorageTemplate(){
 	echo $template
 }
 
+
+# Usage:
+# CreateNFSStorage "DC-ID" "Host-ID" "Storage name" "is master (true/false)" "NFS server IP" "share path" "storage type"
+# Examples:
+# Master storage for VMs disks
+# CreateNFSStorage "Storage-HDD" "true" "192.168.1.10" "/storage/hdd" "DATA"
+# Storage for ISO disks
+# CreateNFSStorage "$DC-ID" "$HOST-ID" "Storage-ISO" "false" "192.168.1.10" "/storage/iso" "ISO"
 function CreateNFSStorage(){
 	local dc_id=$1
 	local host_id=$2
-	local url="/dcs/$dc_id/storages?hostId=$host_id"
 	local stor_name=$3
 	local stor_master=$4
 	local stor_ip=$5
 	local stor_path=$6
-	local stor_pool=$7
+	local stor_type=$7
+	local url="/dcs/$dc_id/storages?hostId=$host_id"
 	# NFSStorageTemplate "Storage-HDD" "true" "192.168.1.10" "/storage/hdd" "DATA"
-	local data=$(NFSStorageTemplate "$stor_name" "$stor_master" "$stor_ip" "$stor_path" "$stor_pool")
+	local data=$(NFSStorageTemplate "$stor_name" "$stor_master" "$stor_ip" "$stor_path" "$stor_type")
+	#echo LOG: $data
+	local result=$(CurlPost "$url" "$data")
+	echo $result
+}
+
+
+# Usage:
+# LocalStorageTemplate "Storage name" "is master (true/false)" "hdd path" "storage type"
+# Examples:
+# Master storage for VMs disks
+# LocalStorageTemplate "Storage-HDD" "true" "/storage/hdd" "DATA"
+function LocalStorageTemplate(){
+	local stor_name="$1"
+	local stor_description="$stor_name"
+	local stor_master="$2" # true false
+	local stor_pool="DIR" # DIR, FIBRE_CHANNEL, ISCSI, NET_FS
+	local stor_path="$3"
+	local stor_type="$4" # BACKUP, DATA, EXTERNAL, ISO
+	local template='{
+					"storageName": "'$stor_name'",
+					"storageType": "'$stor_type'",
+					"poolType": "'$stor_pool'",
+					"storagePath": "'$stor_path'",
+					"sourceHosts": [],
+					"luns": [],
+					"connections": [],
+					"master": '$stor_master'
+				}'
+
+	echo $template
+}
+
+# Usage:
+# CreateLocalStorage "Storage name" "is master (true/false)" "hdd path" "storage type" "DC ID" "HOST ID"
+# Examples:
+# Master storage for VMs disks
+# CreateLocalStorage "Storage-HDD" "true" "/storage/hdd" "DATA" "$DC_ID" "$HOST-ID"
+function CreateLocalStorage(){
+	local stor_name="$1"
+	local stor_description="$stor_name"
+	local stor_master="$2" # true false
+	local stor_path="$3"
+	local stor_type="$4" # BACKUP, DATA, EXTERNAL, ISO
+	local dc_id="$5"
+	local host_id="$6"
+	local url="/dcs/$dc_id/storages?hostId=$host_id"
+	# LocalStorageTemplate "Storage-HDD" "true" "/storage/hdd" "DATA"
+	local data=$(LocalStorageTemplate "$stor_name" "$stor_master" "$stor_path" "$stor_type" "$dc_id")
 	#echo LOG: $data
 	local result=$(CurlPost "$url" "$data")
 	echo $result
@@ -301,7 +357,7 @@ function AddHostToCluster () {
 	local cluster_id="$2"
 	local dc_id="$3"
 	local url="/dcs/""$dc_id""/hosts/""$host_id""/joinCluster/""$cluster_id"
-	echo 
+	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
 	echo $result
 }
@@ -313,6 +369,7 @@ function ActivateHost () {
 	local host_id="$1"
 	local dc_id="$2"
 	local url="/dcs/""$dc_id""/hosts/""$host_id""/activate"
+	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
 	echo $result
 }
@@ -326,4 +383,17 @@ function GetHostStatus () {
 	local "url=/dcs/""$dc_id""/hosts/""$host_id"
 	local result=$(CurlGet "$url")
 	JsonGetKey "$result" '.hostStatus'
+}
+
+
+# Set host as SPM (Storage Primary Master)
+# Usage:
+# ActivateHost "HOST_ID" "DC_ID"
+function SetHostSPM () {
+	local host_id="$1"
+	local dc_id="$2"
+	local url="/dcs/""$dc_id""/hosts/""$host_id""/switch/spm"
+	# echo LOG: ${FUNCNAME[0]}": "$url
+	local result=$(CurlPut "$url")
+	echo $result
 }

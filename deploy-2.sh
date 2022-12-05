@@ -16,11 +16,11 @@ echo
 
 # ЗАПУСКАЕМ СЕРВИСЫ
 # BROKER всегда первый
-echo "Start BROKER"
+echo "Start BROKER..."
 systemctl enable --now tionix-tvc-broker || (echo "Start BROKER failed"; exit 1)
 echo
 # CONTROL вторым
-echo "Start CONTROL"
+echo "Start CONTROL..."
 systemctl enable --now tionix-tvc-control  || (echo "Start CONTROL failed"; exit 1)
 echo
 
@@ -30,7 +30,7 @@ sleep 10
 echo
 
 # АКТИВИРУЕМ АДМИНА
-echo "Create ADMIN user"
+echo "Create ADMIN user..."
 echo "result: " $(AppInit)
 echo
 
@@ -45,7 +45,7 @@ echo " Default MAC pool ID: "$MAC_POOL_ID
 
 echo
 # СОЗДАЕМ НАШ НОВЫЙ ДЦ
-echo "CREATE NEW DC:"
+echo "CREATE NEW DC..."
 echo "  DC name:  "$DC_NAME
 echo "  Local DC: "$USE_LOCAL_DC
 echo $(CreateDC "$DC_NAME" "$DC_NAME" "$USE_LOCAL_DC" "$MAC_POOL_ID" "250")
@@ -74,22 +74,33 @@ sleep 5
 echo
 
 # ДОБАВЛЯЕМ НАШ УЗЕЛ В НАШ ДЦ
-echo "Add host to cluster:"
+echo "Add host to cluster..."
 # Получаем CLUSTER_ID дефолтного кластера в нашем ДЦ
 CLUSTER_ID=$(GetClusterID 'Основной' "$DC_ID")
 echo " Cluster ID:  "$CLUSTER_ID
 # Добавляем узел в кластер
-echo " Add host:"
+echo " Add host..."
 echo " result:      "$(AddHostToCluster "$AGENT_NODE_ID" "$CLUSTER_ID" "$DC_ID")
 echo " Wait host"
 sleep 5
 echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
 # Активируем узел
-echo " Activate host:"
+echo " Activate host.."
 echo " result:      "$(ActivateHost "$AGENT_NODE_ID" "$DC_ID")
 echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
+# Делаем хост SPM (управляющим хранилищами)
+echo " Set host as SPM..."
+echo " result:      "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
 
+echo
+# СОЗДАЕМ ЛОКАЛЬНУЮ ШАРУ ДЛЯ ВМ
+echo "Create LOCAL storage for HDD..."
+echo " result: "$(CreateLocalStorage "$STOR_HDD_NAME" "true" "$STOR_PATH_HDD" "DATA" "$DC_ID")
 
+echo
+# СОЗДАЕМ NFS ШАРУ ДЛЯ ISO
+echo "Create NFS share for ISO..."
+echo " result: "$(CreateNFSStorage "$DC_ID" "$AGENT_NODE_ID" "$STOR_ISO_NAME" "false" "$STOR_SRV_IP" "$STOR_PATH_ISO" "ISO")
 
 
 
