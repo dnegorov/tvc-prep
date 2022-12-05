@@ -68,7 +68,8 @@ sleep 5
 echo
 
 # СТАРТУЕМ AGENT СЕРВИС
-systemctl enable --now tionix-tvc-agent  || (echo "Start AGENT failed"; exit 1)
+systemctl enable tionix-tvc-agent || (echo "Enable AGENT failed"; exit 1)
+systemctl restart tionix-tvc-agent || (echo "Restart AGENT failed"; exit 1)
 echo "Wait AGENT"
 sleep 5
 echo
