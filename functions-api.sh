@@ -19,15 +19,43 @@ function PrintSettings(){
 	echo "	API URL:    "$SU_API_URL
 }
 
-# Return key from json
+# Return key from JSON
 # Usage:
 # JsonGetKey ".key_name"
 # Examples:
-# {"token": "123456789"}
-# JsonGetKey ".token"
-function JsonGetKey(){
-	echo $(echo $1 | jq -r $2)
+# JSON='{"token": "qwertyu"}'
+# JsonGetKey "$JSON" ".token"
+# Return: qwertyu
+function JsonGetKey () {
+	local json="$1"
+	local param="$2"
+	local result=$(echo "$json" | jq -r "$param")
+	echo "$result"
 }
+
+# Change key in JSON
+# Usage:
+# String value must be in double quotes: '"string"':
+# JsonChangeKey "{"json": "formated", "string": "or VARIABLE"}" ".key_name" '"NewStrValue"'
+# Integer or boolean values must be without double quotes:
+# JsonChangeKey "{"json": "formated", "string": "or VARIABLE"}" ".key_name" '1024'
+# JsonChangeKey "{"json": "formated", "string": "or VARIABLE"}" ".key_name" 'true'
+# JsonChangeKey "{"json": "formated", "string": "or VARIABLE"}" ".key_name" 'false'
+#
+# Return JSON formated string
+#
+# Examples:
+# JSON='{"token": "123456789"}'
+# JsonChangeKey "$JSON" ".token" '"P@$$w0rd"'
+# Return: {"token": "P@$$w0rd"}
+function JsonChangeKey () {
+	local json="$1"
+	local param_name="$2"
+	local new_value="$3"
+	local result=$(echo "$json" | jq -r "$param_name"' = '"$new_value")
+	echo "$result"
+}
+
 
 # Return urlencoded sting
 # Usage:
@@ -62,7 +90,7 @@ function LogIn(){
 				-H 'accept: application/json' \
 				-H 'Content-Type: application/x-www-form-urlencoded' \
 				-d "username=$SU_USER_NAME&password=$SU_USER_PWD")
-	JsonGetKey "$result" '.token'
+	echo $(JsonGetKey "$result" '.token')
 }
 
 # Do curl -X GET
@@ -76,14 +104,15 @@ function CurlGet(){
 				"$SU_API_URL""$url" \
 				-H 'accept: application/json' \
 				-H "Authorization: Bearer $(LogIn)")
-	echo $result
+	echo "$result"
 }
 
 # Do curl -X POST
 # Usage:
-# CurlPost "/API/FUNCTION/REQUST"
+# CurlPost "/API/FUNCTION/REQUST" "data"
+# Parameter data is optional
 # Example:
-# CurlPost "/dcs/$dc_id/storages?hostId=$host_id"
+# CurlPost "/dcs/$dc_id/storages?hostId=$host_id" 
 function CurlPost(){
 	local url=$1
 	local data="$2"
@@ -93,22 +122,25 @@ function CurlPost(){
 				-H "Authorization: Bearer $(LogIn)" \
 				-H 'Content-Type: application/json' \
 				-d "$data")
-	echo $result
+	echo "$result"
 }
 
 # Do curl -X PUT
 # Usage:
-# CurlPut "/API/FUNCTION/REQUST"
+# CurlPut "/API/FUNCTION/REQUST" "data"
+# parameter "data" is optional
 # Example:
-# CurlPut ""/dcs/""$dc_id""/hosts/""$host_id""/activate""
+# CurlPut ""/dcs/""$dc_id""/hosts/""$host_id""/activate"" $JSON
 function CurlPut () {
 	local url=$1
+	local data="$2"
 	local result=$($CURL_PUT \
 				"$SU_API_URL""$url" \
 				-H 'accept: */*' \
 				-H "Authorization: Bearer $(LogIn)" \
-				-H 'Content-Type: application/json')
-	echo $result
+				-H 'Content-Type: application/json' \
+				-d "$data")
+	echo "$result"
 
 }
 
@@ -123,14 +155,14 @@ function AppInit () {
 				   -H 'accept: application/json' \
 				   -H 'Content-Type: application/x-www-form-urlencoded' \
 				   -d "$data")
-	echo $result
+	echo "$result"
 }
 
 # Usage:
 # GetMasterRealmID
 function GetMasterRealmID(){
 	local result=$(CurlGet)
-	JsonGetKey "$result" '.id'
+	echo $(JsonGetKey "$result" '.id')
 }
 
 # Usage:
@@ -142,9 +174,8 @@ function GetDCID(){
 	local dc_name=$1
 	local query=$(UrlEncode "in(dcName,""$dc_name"")")
 	local url="/dcs?query=$query"
-
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.[0].id'
+	echo $(JsonGetKey "$result" '.[0].id')
 }
 
 # Usage:
@@ -223,7 +254,7 @@ function NFSStorageTemplate(){
 							}'
 
 
-	echo $template
+	echo "$template"
 }
 
 
@@ -247,7 +278,7 @@ function CreateNFSStorage(){
 	local data=$(NFSStorageTemplate "$stor_name" "$stor_master" "$stor_ip" "$stor_path" "$stor_type")
 	#echo LOG: $data
 	local result=$(CurlPost "$url" "$data")
-	echo $result
+	echo "$result"
 }
 
 
@@ -274,7 +305,7 @@ function LocalStorageTemplate(){
 					"master": '$stor_master'
 				}'
 
-	echo $template
+	echo "$template"
 }
 
 # Usage:
@@ -295,7 +326,7 @@ function CreateLocalStorage(){
 	local data=$(LocalStorageTemplate "$stor_name" "$stor_master" "$stor_path" "$stor_type" "$dc_id")
 	#echo LOG: $data
 	local result=$(CurlPost "$url" "$data")
-	echo $result
+	echo "$result"
 }
 
 # Get storage ID
@@ -307,7 +338,7 @@ function GetStorageId(){
 	local query=$(UrlEncode "in(storageName,""$stor_name"")")
 	local url="/dcs/$dc_id/storages?query=$query"
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.[0].id.id'
+	echo $(JsonGetKey "$result" '.[0].id.id')
 }
 
 
@@ -319,7 +350,7 @@ function GetStorageStatus () {
 	local dc_id="$2"
 	local "url=/dcs/""$dc_id""/storages/""$stor_id"
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.storageStatus'
+	echo $(JsonGetKey "$result" '.storageStatus')
 }
 
 
@@ -331,7 +362,7 @@ function GetMacPoolId () {
 	local query=$(UrlEncode "in(poolName,""$pool_name"")")
 	local url="/mac-address-pools?query=""$query"
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.[0].id'
+	echo $(JsonGetKey "$result" '.[0].id')
 }
 
 
@@ -364,7 +395,7 @@ function DCTemplate () {
 					"maxHostsCount": '$dc_max_hosts'
 					}'
 
-	echo $template
+	echo "$template"
 }
 
 
@@ -384,7 +415,7 @@ function CreateDC () {
 	local data=$(DCTemplate "$dc_name" "$dc_description" "$dc_local" "$dc_mac_address_pool" "$dc_max_hosts")
 	#echo LOG: $data
 	local result=$(CurlPost "$url" "$data")
-	echo $result
+	echo "$result"
 }
 
 # Get Cluster ID
@@ -396,7 +427,7 @@ function GetClusterID () {
 	local query=$(UrlEncode "in(clusterName,""$cluster_name"")")
 	local url="/dcs/""$dc_id""/clusters?query=""$query"
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.[0].id.id'
+	echo $(JsonGetKey "$result" '.[0].id.id')
 }
 
 # Add host to clusster in DC
@@ -409,7 +440,7 @@ function AddHostToCluster () {
 	local url="/dcs/""$dc_id""/hosts/""$host_id""/joinCluster/""$cluster_id"
 	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
-	echo $result
+	echo "$result"
 }
 
 # Activate host
@@ -421,7 +452,7 @@ function ActivateHost () {
 	local url="/dcs/""$dc_id""/hosts/""$host_id""/activate"
 	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
-	echo $result
+	echo "$result"
 }
 
 # Activate host
@@ -432,7 +463,7 @@ function GetHostStatus () {
 	local dc_id="$2"
 	local "url=/dcs/""$dc_id""/hosts/""$host_id"
 	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.hostStatus'
+	echo $(JsonGetKey "$result" '.hostStatus')
 }
 
 
@@ -445,34 +476,29 @@ function SetHostSPM () {
 	local url="/dcs/""$dc_id""/hosts/""$host_id""/switch/spm"
 	# echo LOG: ${FUNCNAME[0]}": "$url
 	local result=$(CurlPut "$url")
-	echo $result
+	echo "$result"
 }
 
-# Get Network ID
+
+# Create NetworkEntity with minimal set of properties
 # Usage:
-# GetMacPoolId "Network Name" "DC_ID"
-function GetNetworkID () {
-	local network_name="$1"
-	local dc_id="$2"
-	local query=$(UrlEncode "in(networkName,""$network_name"")")
-	local url="/dcs/""$dc_id""/networks?query=""$query"
-	local result=$(CurlGet "$url")
-	JsonGetKey "$result" '.[0].id.id'
+# NewNet=$(NetworkEntityTemplate)
+# Return: '{"networkName": "EXAMPLE", "description": "EXAMPLE", "vlanId": null, "mtu": 1500, "vmNetwork": true,	"portIsolation": false,	"dnsServers": []}'
+function NetworkEntityTemplate () {
+	local template='{
+					"networkName": "EXAMPLE",
+					"description": "EXAMPLE",
+					"vlanId": null,
+					"mtu": 1500,
+					"vmNetwork": true,
+					"portIsolation": false,
+					"dnsServers": []
+					}'
+	echo "$template"
 }
 
-# Get network properties
-# Usage:
-# GetNetwork "Network_ID" "DC_ID"
-# Return: NetworkEntity in JSON 
-function GetNetwork () {
-	local net_id="$1"
-	local dc_id="$2"
-	local url="/dcs/""$dc_id""/networks/""$net_id"
-	local result=$(CurlGet "$url")
-	echo $result
-}
 
-# Get network parameter
+# Get network parameter from NetworkEntity JSON
 # Usage:
 # GetNetworkParameter "NetworkEntity in JSON" "Param Name"
 # Return: value string 
@@ -492,20 +518,149 @@ function GetNetwork () {
 function GetNetworkParameter () {
 	local network="$1"
 	local param_name="$2"
-	JsonGetKey "$network" "$param_name"
+	local result=$(JsonGetKey "$network" "$param_name")
+	echo "$result"
+}
+
+# Change key in NetworkEntity JSON
+# Usage:
+# SetNetworkParameter "$NetworkEntity" "KeyName" "NewValue"
+# Value types as in JSON standart:
+# strings: "string" must be in ""
+# integers: 123
+# boolean: true false
+#
+# Examples:
+# Add а list of DNS servers (ip as a string)
+# SetNetworkParameter "$(GetNetwork $NET_ID $DC_ID)" ".dnsServers" '["8.8.8.8", "77.88.8.8 "]'
+# Enable port mirroring
+# SetNetworkParameter "$(GetNetwork $NET_ID $DC_ID)" ".portMirroring" 'true'
+# Change MTU
+# SetNetworkParameter "$(GetNetwork $NET_ID $DC_ID)" ".mtu" '9000'
+# Key names starts with . (root)
+# .hostname
+# .key.subkey
+# .list[1].key.subkey
+#
+# See comments for JsonChangeKey
+function SetNetworkParameter () {
+	local network="$1"
+	local param_name="$2"
+	local new_value="$3"
+	local result=$(JsonChangeKey "$network" "$param_name" "$new_value")
+	echo "$result"
 }
 
 
-#function SetNetworkParameter () {
-#	local network="$1"
-#	local param_name="$2"
-#	local new_value="3"
-#	local rsult=$(jq)
-#}
+# Get network properties
+# Usage:
+# GetNetwork "Network_ID" "DC_ID"
+# Return: NetworkEntity in JSON 
+function GetNetwork () {
+	local net_id="$1"
+	local dc_id="$2"
+	local url="/dcs/""$dc_id""/networks/""$net_id"
+	local result=$(CurlGet "$url")
+	echo "$result"
+}
 
+# Get Network ID
+# Usage:
+# GetNetworkID "Network Name" "DC_ID"
+function GetNetworkID () {
+	local network_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(networkName,""$network_name"")")
+	local url="/dcs/""$dc_id""/networks?query=""$query"
+	local result=$(GetNetworkParameter "$(CurlGet "$url")" '.[0].id.id')
+	echo "$result"
+}
+
+
+# Change network
+# Usage:
+# ChangeNetwork "NET_ID" "$NetworkEntity"
+# Example:
+# NetworkEntity=$(NetworkEntityTemplate)
+# NetworkEntity=SetNetworkParameter "$NetworkEntity" ".networkName" '"INTERCONNECT"'
+# ChangeNetwork "$DC_ID" "$NetworkEntity"
+function ChangeNetwork () {
+	local net_id="$1"
+	local dc_id="$2"
+	local network="$3"
+	local url="/dcs/""$dc_id""/networks/""$net_id"
+	local result=$(CurlPut "$url" "$network")
+	echo "$result"
+}
+
+# Create network
+# Usage:
+# CreateNetwork "DC_ID" "$NetworkEntity"
+# Example:
+# NetworkEntity=$(GetNetwork $NET_ID $DC_ID)
+# NetworkEntity_new=SetNetworkParameter "$(GetNetwork $NET_ID $DC_ID)" ".mtu" '9000'
+# ChangeNetwork "$NET_ID" "$DC_ID" "$NetworkEntity_new"
+function CreateNetwork () {
+	local dc_id="$1"
+	local network="$2"
+	local url="/dcs/""$dc_id""/networks/"
+	local result=$(CurlPost "$url" "$network")
+	echo "$result"
+}
+
+# Create cluster network properties
+# Usage:
+# SetClusterNetProperties "required" "management" "display" "migration" "storage" "default_route"
+#
+# Example:
+# Create network for STORAGE only
+# SetClusterNetProperties "true" "false" "false" "true" "storage" "false"
+#
+# PARAMETERS ARE BOOLEAN CAN BE ONLY "true" OR "false"
+# 1 required      - must be on every host
+# 2 management    - used as managment
+# 3 display       - used for vnc access
+# 4 migration     - used for migration
+# 5 storage       - used for storage networks
+# 6 default_route - used for default gateway
+function SetClusterNetProperties () {
+	local network_id=""
+	local cluster_id=""
+	local required="$1"
+	local management="$2"
+	local display="$3"
+	local migration="$4"
+	local storage="$5"
+	local default_route="$6"
+	local template='{
+					"defaultRoute": '"$default_route"',
+					"display": '"$display"',
+					"id": {
+						"networkId": "'"$network_id"'",
+						"clusterId": "'"$cluster_id"'"
+					},
+					"management": '"$management"',
+					"migration": '"$migration"',
+					"required": '"$required"',
+					"storage": '"$storage"'
+					}'
+	echo "$template"
+}
+
+function ApplyNetToCluster () {
+	local dc_id="$1"
+	local net_id="$2"
+	local cluster_id="$3"
+	local net_properties="$4"
+	net_properties=$(JsonChangeKey "$net_properties" ".id.networkId" '"'"$net_id"'"')
+	net_properties=$(JsonChangeKey "$net_properties" ".id.clusterId" '"'"$cluster_id"'"')
+	echo "ApplyNetToCluster: ""$net_properties"
+	local url="/dcs/""$dc_id""/networks/""$net_id""/cluster-networks"
+	local result=$(CurlPost "$url" "$net_properties")
+	echo "$result"
+}
 
 function GetDCparams () {
-
 	local dc_id=$(GetDCID "$DC_NAME")
 	local cluster_id=$(GetClusterID 'Основной' "$dc_id")
 	local mgmtnet_id=$(GetNetworkID 'tvcmgmt' "$dc_id")
@@ -514,6 +669,7 @@ function GetDCparams () {
 	echo $(LogIn)
 	echo
 	echo "DC Parameters"
+	echo " Realm:          "$REALM
 	echo " DC name:        "$DC_NAME
 	echo " DC-ID:          "$dc_id
 	echo " Cluster ID:     "$cluster_id

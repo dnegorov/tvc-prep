@@ -135,6 +135,59 @@ echo " wait 15 sec..."
 sleep 15
 echo " status: "$(GetStorageStatus "$ISO_STORAGE_ID" "$DC_ID")
 
+echo
+# СЕТЬ УПРАВЛЕНИЯ
+# Правим сеть tvcmgmt, добавляем DNS если вдруг его там нет
+echo "Add DNS to managment network..."
+MGMNT_NET_ID=$(GetNetworkID 'tvcmgmt' "$DC_ID")
+echo " tvcmgmt ID: ""$MGMNT_NET_ID"
+MANAGMENT_NETWORK_PROPERTIES=$(GetNetwork "$MGMNT_NET_ID" "$DC_ID")
+echo "==========================="
+echo -e " MANAGMENT_NETWORK_PROPERTIES:\n""$MANAGMENT_NETWORK_PROPERTIES" | jq
+echo "==========================="
+echo
+echo "Add DNS"
+MANAGMENT_NETWORK_PROPERTIES=$(SetNetworkParameter "$MANAGMENT_NETWORK_PROPERTIES" ".dnsServers" '["'"$HOST_DNS"'"]')
+echo "==========================="
+echo " MANAGMENT_NETWORK_PROPERTIES:"
+echo "$MANAGMENT_NETWORK_PROPERTIES" | jq
+echo "==========================="
+echo
+echo "Applay changes to network"
+echo "Result: "$(ChangeNetwork "$MGMNT_NET_ID" "$DC_ID" "$MANAGMENT_NETWORK_PROPERTIES")
+
+echo
+# СОЗДАЕМ СЕТЬ INTERCONNECT
+echo "Create new network: "SU_NET_INTERCONNECT_NAME"..."
+echo " Create Entity"
+INTERCONNECT_NETWORK_PROPERTIES=$(NetworkEntityTemplate)
+echo " Change Name: ""$SU_NET_INTERCONNECT_NAME"
+INTERCONNECT_NETWORK_PROPERTIES=$(SetNetworkParameter "$INTERCONNECT_NETWORK_PROPERTIES" ".networkName" '"'"$SU_NET_INTERCONNECT_NAME"'"')
+INTERCONNECT_NETWORK_PROPERTIES=$(SetNetworkParameter "$INTERCONNECT_NETWORK_PROPERTIES" ".description" '"'"$SU_NET_INTERCONNECT_NAME"'"')
+echo " Change VLAN: ""$SU_NET_INTERCONNECT_VLAN"
+INTERCONNECT_NETWORK_PROPERTIES=$(SetNetworkParameter "$INTERCONNECT_NETWORK_PROPERTIES" ".vlanId" "$SU_NET_INTERCONNECT_VLAN")
+echo " Change MTU:  ""$SU_NET_INTERCONNECT_MTU"
+INTERCONNECT_NETWORK_PROPERTIES=$(SetNetworkParameter "$INTERCONNECT_NETWORK_PROPERTIES" ".mtu" "$SU_NET_INTERCONNECT_MTU")
+echo "==========================="
+echo " INTERCONNECT_NETWORK_PROPERTIES:"
+echo "$INTERCONNECT_NETWORK_PROPERTIES" | jq
+echo "==========================="
+echo "result: "$(CreateNetwork "$DC_ID" "$INTERCONNECT_NETWORK_PROPERTIES")
+
+echo
+# ДОБАВЛЯЕМ СЕТЬ INTERCONNECT В НАШ КЛАСТЕР
+echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID"
+IC_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
+echo " "$SU_NET_INTERCONNECT_NAME" ID: "$IC_ID
+echo " Set network roles for cluster"
+IC_NET_CLUSTER_ROLES=$(SetClusterNetProperties "true" "false" "false" "false" "false" "false")
+echo "==========================="
+echo " IC_NET_CLUSTER_ROLES:"
+echo "$IC_NET_CLUSTER_ROLES" | jq
+echo "==========================="
+echo "Add IC to cluster"
+echo "result: "$(ApplyNetToCluster "$DC_ID" "$IC_ID" "$CLUSTER_ID" "$IC_NET_CLUSTER_ROLES")
+
 
 
 
