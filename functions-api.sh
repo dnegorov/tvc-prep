@@ -654,7 +654,6 @@ function ApplyNetToCluster () {
 	local net_properties="$4"
 	net_properties=$(JsonChangeKey "$net_properties" ".id.networkId" '"'"$net_id"'"')
 	net_properties=$(JsonChangeKey "$net_properties" ".id.clusterId" '"'"$cluster_id"'"')
-	echo "ApplyNetToCluster: ""$net_properties"
 	local url="/dcs/""$dc_id""/networks/""$net_id""/cluster-networks"
 	local result=$(CurlPost "$url" "$net_properties")
 	echo "$result"
