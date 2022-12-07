@@ -663,6 +663,44 @@ function ApplyNetToCluster () {
 	echo "$result"
 }
 
+function AddNetworkToNetDeploymentEntity () {
+	local net_id
+	local dc_is
+	local description
+	local migratable
+	local portMirroring
+	local profileName
+	local template='{
+					"description": "example",
+					"migratable": true,
+					"passthrough": true,
+					"portMirroring": true,
+					"profileName": "example",
+					"id": {
+						"dcId": "19865dec-e6f8-4834-a23e-54bf4d493166",
+						"id": "19865dec-e6f8-4834-a23e-54bf4d493166"
+							}
+					}'
+	echo "$template"
+}
+
+function CreateNetDeploymentEntity () {
+	local deployment_name="$1"
+	local enabled="$2"
+	local net_id="$3"
+	local dc_id="$4"
+	local deployment_descr="$deployment_name"
+	local template='{
+					"deploymentDescription": "'"$deployment_descr"'",
+					"deploymentName": "'"$deployment_name"'",
+					"enabled": '"$enabled"',
+					"networkProfiles": []
+					}'
+	template=$(AddNetworkToNetDeploymentEntity)
+	echo "$template"
+}
+
+
 function GetDCparams () {
 	local dc_id=$(GetDCID "$DC_NAME")
 	local cluster_id=$(GetClusterID 'Основной' "$dc_id")
