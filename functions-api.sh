@@ -610,11 +610,11 @@ function CreateNetwork () {
 
 # Create cluster network properties
 # Usage:
-# SetClusterNetProperties "required" "management" "display" "migration" "storage" "default_route"
+# SetClusterNetRoles "required" "management" "display" "migration" "storage" "default_route"
 #
 # Example:
 # Create network for STORAGE only
-# SetClusterNetProperties "true" "false" "false" "true" "storage" "false"
+# SetClusterNetRoles "true" "false" "false" "true" "storage" "false"
 #
 # PARAMETERS ARE BOOLEAN CAN BE ONLY "true" OR "false"
 # 1 required      - must be on every host
@@ -623,7 +623,7 @@ function CreateNetwork () {
 # 4 migration     - used for migration
 # 5 storage       - used for storage networks
 # 6 default_route - used for default gateway
-function SetClusterNetProperties () {
+function SetClusterNetRoles () {
 	local network_id=""
 	local cluster_id=""
 	local required="$1"
@@ -647,15 +647,19 @@ function SetClusterNetProperties () {
 	echo "$template"
 }
 
+
+# Applay to network to cluster
+# Usage:
+# ApplyNetToCluster "DC_ID" "NET_ID" "CLUSTER_ID" "NET_ROLES"
 function ApplyNetToCluster () {
 	local dc_id="$1"
 	local net_id="$2"
 	local cluster_id="$3"
-	local net_properties="$4"
-	net_properties=$(JsonChangeKey "$net_properties" ".id.networkId" '"'"$net_id"'"')
-	net_properties=$(JsonChangeKey "$net_properties" ".id.clusterId" '"'"$cluster_id"'"')
+	local net_roles="$4"
+	net_roles=$(JsonChangeKey "$net_roles" ".id.networkId" '"'"$net_id"'"')
+	net_roles=$(JsonChangeKey "$net_roles" ".id.clusterId" '"'"$cluster_id"'"')
 	local url="/dcs/""$dc_id""/networks/""$net_id""/cluster-networks"
-	local result=$(CurlPost "$url" "$net_properties")
+	local result=$(CurlPost "$url" "$net_roles")
 	echo "$result"
 }
 

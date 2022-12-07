@@ -180,7 +180,7 @@ echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID"
 IC_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
 echo " "$SU_NET_INTERCONNECT_NAME" ID: "$IC_ID
 echo " Set network roles for cluster"
-IC_NET_CLUSTER_ROLES=$(SetClusterNetProperties "true" "false" "false" "false" "false" "false")
+IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "true" "false" "false" "false" "false" "false")
 echo "==========================="
 echo " IC_NET_CLUSTER_ROLES:"
 echo "$IC_NET_CLUSTER_ROLES" | jq
