@@ -177,17 +177,30 @@ echo "result: "$(CreateNetwork "$DC_ID" "$INTERCONNECT_NETWORK_PROPERTIES")
 echo
 # ДОБАВЛЯЕМ СЕТЬ INTERCONNECT В НАШ КЛАСТЕР
 echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID"
-IC_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
-echo " "$SU_NET_INTERCONNECT_NAME" ID: "$IC_ID
+INTERCONNECT_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
+echo " "$SU_NET_INTERCONNECT_NAME" ID: "$INTERCONNECT_ID
 echo " Set network roles for cluster"
 IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "true" "false" "false" "false" "false" "false")
 echo "==========================="
 echo " IC_NET_CLUSTER_ROLES:"
 echo "$IC_NET_CLUSTER_ROLES" | jq
 echo "==========================="
-echo "Add IC to cluster"
-echo "result: "$(ApplyNetToCluster "$DC_ID" "$IC_ID" "$CLUSTER_ID" "$IC_NET_CLUSTER_ROLES")
+echo " Add IC to cluster"
+echo " result: "$(ApplyNetToCluster "$DC_ID" "$INTERCONNECT_ID" "$CLUSTER_ID" "$IC_NET_CLUSTER_ROLES")
 
-
-
-
+echo
+# СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: СЕТИ
+echo "Create network proporsal: ""$PROPORSAL_NET_NAME"
+echo " Create network deployment with managment network:"
+NETWORK_DEPLOY=$(CreateNetDeploymentEntity "$PROPORSAL_NET_NAME" "true" "$MGMNT_NET_ID" "$DC_ID")
+echo "==========================="
+echo " NETWORK_DEPLOY:"
+echo "$NETWORK_DEPLOY" | jq
+echo "==========================="
+echo " Add to deployment network: ""$SU_NET_INTERCONNECT_NAME"
+NETWORK_DEPLOY=$(AddNetworkToNetDeploymentEntity "$NETWORK_DEPLOY" "#INTERCONNECT_ID" "$DC_ID")
+echo "==========================="
+echo " NETWORK_DEPLOY:"
+echo "$NETWORK_DEPLOY" | jq
+echo "==========================="
+echo " result: "$(ApplayNetDeployment "$DC_ID" "$NETWORK_DEPLOY")

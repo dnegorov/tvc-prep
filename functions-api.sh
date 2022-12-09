@@ -664,24 +664,13 @@ function ApplyNetToCluster () {
 }
 
 function AddNetworkToNetDeploymentEntity () {
-	local net_id
-	local dc_is
-	local description
-	local migratable
-	local portMirroring
-	local profileName
-	local template='{
-					"description": "example",
-					"migratable": true,
-					"passthrough": true,
-					"portMirroring": true,
-					"profileName": "example",
-					"id": {
-						"dcId": "19865dec-e6f8-4834-a23e-54bf4d493166",
-						"id": "19865dec-e6f8-4834-a23e-54bf4d493166"
-							}
-					}'
-	echo "$template"
+	local deployment="$1"
+	local net_id="$2"
+	local dc_id="$3"
+	local network=$(GetNetwork "$net_id" "$dc_id")
+	local net_profiles=$(GetNetworkParameter "$network" '.networkProfiles[0]')
+	deployment=$(JsonChangeKey "$deployment" ".networkProfiles[1]" "$net_profiles")
+	echo "$deployment"
 }
 
 function CreateNetDeploymentEntity () {
@@ -690,31 +679,42 @@ function CreateNetDeploymentEntity () {
 	local net_id="$3"
 	local dc_id="$4"
 	local deployment_descr="$deployment_name"
+	local network=$(GetNetwork "$net_id" "$dc_id")
+	local net_profiles=$(GetNetworkParameter "$network" '.networkProfiles[0]')
 	local template='{
 					"deploymentDescription": "'"$deployment_descr"'",
 					"deploymentName": "'"$deployment_name"'",
-					"enabled": '"$enabled"',
-					"networkProfiles": []
+					"enabled": '"$enabled"'
 					}'
-	template=$(AddNetworkToNetDeploymentEntity)
+	template=$(JsonChangeKey "$template" ".networkProfiles[0]" "$net_profiles")
 	echo "$template"
 }
 
+function ApplayNetDeployment () {
+	local dc_id="$1"
+	local deployment="$2"
+	local url="/dcs/""$dc_id""/network-deployments"
+	local result=$(CurlPost "$url" "$deployment")
+	echo "$result"
+}
 
 function GetDCparams () {
 	local dc_id=$(GetDCID "$DC_NAME")
 	local cluster_id=$(GetClusterID 'Основной' "$dc_id")
 	local mgmtnet_id=$(GetNetworkID 'tvcmgmt' "$dc_id")
+	local mgmtnet=$(GetNetwork "$mgmtnet_id" "$dc_id")
+	local mgmtnet_profile_id=$(GetNetworkParameter "$mgmtnet" '.networkProfiles[0].id.id')
 	echo
 	echo "Security token: "
 	echo $(LogIn)
 	echo
 	echo "DC Parameters"
-	echo " Realm:          "$REALM
-	echo " DC name:        "$DC_NAME
-	echo " DC-ID:          "$dc_id
-	echo " Cluster ID:     "$cluster_id
-	echo " Host ID:        "$AGENT_NODE_ID
-	echo " tvcmgmt Net ID: "$mgmtnet_id
+	echo " Realm:              "$REALM
+	echo " DC name:            "$DC_NAME
+	echo " DC-ID:              "$dc_id
+	echo " Cluster ID:         "$cluster_id
+	echo " Host ID:            "$AGENT_NODE_ID
+	echo " tvcmgmt Net ID:     "$mgmtnet_id
+	echo " tvcmgmt Profile ID: "$mgmtnet_profile_id
 	echo 
 }
