@@ -36,7 +36,7 @@ function FixForDisableGUI () {
     sed -i 's/^\#\#/\#/g' "$file_path"
     
     local notification=$(echo 'echo -e "\n\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m\n"')
-    echo -e 'Add notification "'"\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m"'" to '"$file_path"
+    # echo -e 'Add notification "'"\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m"'" to '"$file_path"
     ApendFileUniqStr "$notification" "$file_path"
 }
 
