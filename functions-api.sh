@@ -663,16 +663,26 @@ function ApplyNetToCluster () {
 	echo "$result"
 }
 
+# Add to NetDeploymentEntity new network profile
+# Usage:
+# AddNetworkToNetDeploymentEntity "NetDeployEntity" "PROFILE_NUMBER" "NETWORK_ID" "DC_ID"
+# Return: NetDeploymentEntity in JSON formated string
 function AddNetworkToNetDeploymentEntity () {
 	local deployment="$1"
-	local net_id="$2"
-	local dc_id="$3"
+	local profile_number=".networkProfiles[""$2""]"
+	local net_id="$3"
+	local dc_id="$4"
 	local network=$(GetNetwork "$net_id" "$dc_id")
 	local net_profiles=$(GetNetworkParameter "$network" '.networkProfiles[0]')
-	deployment=$(JsonChangeKey "$deployment" ".networkProfiles[1]" "$net_profiles")
+	deployment=$(JsonChangeKey "$deployment" "$profile_number" "$net_profiles")
 	echo "$deployment"
 }
 
+# Create NetDeploymentEntity with first network profile (.networkProfiles[0])
+# Usage:
+# CreateNetDeploymentEntity "DEPLOYMENT_NAME" "ENABLED" "NET_ID" "DC_ID"
+# Return: NetDeploymentEntity in JSON formated string
+# Parameter ENABLED must be true or false
 function CreateNetDeploymentEntity () {
 	local deployment_name="$1"
 	local enabled="$2"
@@ -690,6 +700,9 @@ function CreateNetDeploymentEntity () {
 	echo "$template"
 }
 
+# Applay NetDeploymentEntity to DC
+# Usage:
+# ApplayNetDeployment "DC_ID" "NetDeployEntity"
 function ApplayNetDeployment () {
 	local dc_id="$1"
 	local deployment="$2"
@@ -697,6 +710,70 @@ function ApplayNetDeployment () {
 	local result=$(CurlPost "$url" "$deployment")
 	echo "$result"
 }
+
+# Create ComputeDeploymentEntity
+# Usage:
+# CreateComputeDeploymentEntity "DEPLOYMENT_NAME" "CPU_CORES_MIN" "CPU_CORES_MAX" "CPU_SPEED_MIN" "CPU_SPEED_MAX" "RAM_MIN" "RAM_MAX" "VRAM_MAX"
+# Return: ComputeDeploymentEntity in JSON formated string
+# Parameters:
+# DEPLOYMENT_NAME: string 
+# CPU_CORES_MIN: integer (from 1 to 512 max)
+# CPU_CORES_MAX: integer (from CPU_CORES_MIN to 512 max)
+# CPU_SPEED_MIN: integer (in MHz from 500 to 10000 max)
+# CPU_SPEED_MAX: integer (in MHz from CPU_SPEED_MIN to 10000 max)
+# RAM_MIN: integer (in Mb from 16 to 655360 max)
+# RAM_MAX: integer (in Mb from RAM_MIN to 655360 max)
+# VRAM_MAX: integer (in Mb from 32 to 1024 max)
+function CreateComputeDeploymentEntity () {
+	local deployment_name="$1"
+	local cpu_cores_min="$2"
+	local cpu_cores_max="$3"
+	local cpu_speed_min="$4"
+	local cpu_speed_max="$5"
+	local ram_min="$6"
+	local ram_max="$7"
+	local vram_max="$8"
+	local cpu_arch="x86_64"
+	local chipset_types='["I440FX", "Q35"]'
+	local enabled="true"
+	local cpu_model="null"
+	local ha="false"
+	local nested_virtualization="true"
+	local volatile_vm="false"
+	local deployment_desc="$deployment_name"
+	local template='{
+					"deploymentDescription": "'"$deployment_name"'",
+					"deploymentName": "'"$deployment_desc"'",
+					"enabled": '"$enabled"',
+					"chipsetTypes": '"$chipset_types"',
+					"coreCountMax": '"$cpu_cores_max"',
+					"coreCountMin": '"$cpu_cores_min"',
+					"cpuArch": "'"$cpu_arch"'",
+					"cpuModel": '"$cpu_model"',
+					"cpuSpeedMax": '"$cpu_speed_max"',
+					"cpuSpeedMin": '"$cpu_speed_min"',
+					"ha": '"$ha"',
+					"nestedVirtualization": '"$nested_virtualization"',
+					"ramMax": '"$ram_max"',
+					"ramMin": '"$ram_min"',
+					"volatileVm": '"$volatile_vm"',
+					"vramMax": '"$vram_max"'
+					}'
+	echo "$template"
+}
+
+
+# Applay ComputeDeploymentEntity to DC
+# Usage:
+# ApplayComputeDeployment "DC_ID" "ComputeDeploymentEntity"
+function ApplayComputeDeployment () {
+	local dc_id="$1"
+	local deployment="$2"
+	local url="/dcs/""$dc_id""/compute-deployments"
+	local result=$(CurlPost "$url" "$deployment")
+	echo "$result"
+}
+
 
 function GetDCparams () {
 	local dc_id=$(GetDCID "$DC_NAME")

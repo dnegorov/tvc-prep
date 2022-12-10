@@ -36,14 +36,16 @@ echo
 echo "Start BROKER..."
 systemctl enable --now tionix-tvc-broker || (echo "Start BROKER failed"; exit 1)
 echo
+echo "Wait BROKER 5 sec..."
+sleep 5
 # CONTROL вторым
 echo "Start CONTROL..."
 systemctl enable --now tionix-tvc-control  || (echo "Start CONTROL failed"; exit 1)
 echo
 
 # Ждем ответа WEB-Interface
-echo "Wait for WEB-Interface 10 sec..."
-sleep 10
+echo "Wait for WEB-Interface 5 sec..."
+sleep 5
 echo
 
 # АКТИВИРУЕМ АДМИНА
@@ -51,7 +53,7 @@ echo "Create ADMIN user..."
 echo "result: " $(AppInit)
 echo
 
-# СОБИРАЕМ ДАННЫЕ ДЛЯ СОЗДАНИЯ СВОЕГО ДОМЕНА
+# СОБИРАЕМ ДАННЫЕ ДЛЯ СОЗДАНИЯ СВОЕГО ДАТА ЦЕНТРА
 echo "GET INFO ABOUT REALM: "$REALM
 # Получаем REALM_ID (корень СУ)
 REALM_ID=$(GetMasterRealmID)
@@ -63,14 +65,13 @@ echo " Default MAC pool ID: "$MAC_POOL_ID
 echo
 # СОЗДАЕМ НАШ НОВЫЙ ДЦ
 echo "CREATE NEW DC..."
-echo "  DC name:  "$DC_NAME
-echo "  Local DC: "$USE_LOCAL_DC
-echo $(CreateDC "$DC_NAME" "$DC_NAME" "$USE_LOCAL_DC" "$MAC_POOL_ID" "250")
+echo " DC name:  "$DC_NAME
+echo " Local DC: "$USE_LOCAL_DC
+echo " Result:   "$(CreateDC "$DC_NAME" "$DC_NAME" "$USE_LOCAL_DC" "$MAC_POOL_ID" "250")
 # ПОЛУЧАЕМ DC_ID НАШЕГО ДЦ
 DC_ID=$(GetDCID "$DC_NAME")
-echo "DC_ID: "$DC_ID
+echo " DC_ID:    "$DC_ID
 echo
-
 
 # СОХРАНЯЕМ DC_ID В КОНФИГ АГЕНТА
 SetParamInConfig "agent.dc-id" "$DC_ID" "$AGENT_CONFIG_FILE"
@@ -81,7 +82,7 @@ echo
 # СТАРТУЕМ SANLOCK СЕРВИС
 echo "Enable SANLOCK service..."
 systemctl enable sanlock || (echo "Enable SANLOCK failed"; exit 1)
-echo "Start SANLOCK service..."
+echo "Restart SANLOCK service..."
 systemctl restart sanlock || (echo "Restart SANLOCK failed"; exit 1)
 echo "Wait SANLOC 5 sec..."
 sleep 5
@@ -111,9 +112,6 @@ echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
 echo " Activate host.."
 echo " result:      "$(ActivateHost "$AGENT_NODE_ID" "$DC_ID")
 echo " Host status: "$(GetHostStatus "$AGENT_NODE_ID" "$DC_ID")
-# Делаем хост SPM (управляющим хранилищами)
-echo " Set host as SPM..."
-echo " result:      "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
 
 echo
 # СОЗДАЕМ ЛОКАЛЬНУЮ ШАРУ ДЛЯ ВМ
@@ -124,6 +122,9 @@ echo " storage ID: "$LOCAL_STORAGE_ID
 echo " wait 15 sec..."
 sleep 15
 echo " status: "$(GetStorageStatus "$LOCAL_STORAGE_ID" "$DC_ID")
+# Делаем хост SPM (управляющим хранилищами) если он вдруг сам не сделался
+echo " Set host as SPM..."
+echo " result:     "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
 
 echo
 # СОЗДАЕМ NFS ШАРУ ДЛЯ ISO
@@ -143,23 +144,24 @@ MGMNT_NET_ID=$(GetNetworkID 'tvcmgmt' "$DC_ID")
 echo " tvcmgmt ID: ""$MGMNT_NET_ID"
 MANAGMENT_NETWORK_PROPERTIES=$(GetNetwork "$MGMNT_NET_ID" "$DC_ID")
 echo "==========================="
-echo -e " MANAGMENT_NETWORK_PROPERTIES:\n""$MANAGMENT_NETWORK_PROPERTIES" | jq
+echo " MANAGMENT_NETWORK_PROPERTIES:"
+echo "$MANAGMENT_NETWORK_PROPERTIES" | jq
 echo "==========================="
 echo
-echo "Add DNS"
+echo " Add DNS settings..."
 MANAGMENT_NETWORK_PROPERTIES=$(SetNetworkParameter "$MANAGMENT_NETWORK_PROPERTIES" ".dnsServers" '["'"$HOST_DNS"'"]')
 echo "==========================="
 echo " MANAGMENT_NETWORK_PROPERTIES:"
 echo "$MANAGMENT_NETWORK_PROPERTIES" | jq
 echo "==========================="
 echo
-echo "Applay changes to network"
+echo " Applay changes to network..."
 echo "Result: "$(ChangeNetwork "$MGMNT_NET_ID" "$DC_ID" "$MANAGMENT_NETWORK_PROPERTIES")
 
 echo
 # СОЗДАЕМ СЕТЬ INTERCONNECT
 echo "Create new network: "SU_NET_INTERCONNECT_NAME"..."
-echo " Create Entity"
+echo " Create Entity..."
 INTERCONNECT_NETWORK_PROPERTIES=$(NetworkEntityTemplate)
 echo " Change Name: ""$SU_NET_INTERCONNECT_NAME"
 INTERCONNECT_NETWORK_PROPERTIES=$(SetNetworkParameter "$INTERCONNECT_NETWORK_PROPERTIES" ".networkName" '"'"$SU_NET_INTERCONNECT_NAME"'"')
@@ -176,10 +178,10 @@ echo "result: "$(CreateNetwork "$DC_ID" "$INTERCONNECT_NETWORK_PROPERTIES")
 
 echo
 # ДОБАВЛЯЕМ СЕТЬ INTERCONNECT В НАШ КЛАСТЕР
-echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID"
+echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID..."
 INTERCONNECT_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
 echo " "$SU_NET_INTERCONNECT_NAME" ID: "$INTERCONNECT_ID
-echo " Set network roles for cluster"
+echo " Set network roles for cluster..."
 IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "true" "false" "false" "false" "false" "false")
 echo "==========================="
 echo " IC_NET_CLUSTER_ROLES:"
@@ -191,7 +193,7 @@ echo " result: "$(ApplyNetToCluster "$DC_ID" "$INTERCONNECT_ID" "$CLUSTER_ID" "$
 echo
 # СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: СЕТИ
 echo "Create network proporsal: ""$PROPORSAL_NET_NAME"
-echo " Create network deployment with managment network:"
+echo " Create network deployment with managment network..."
 NETWORK_DEPLOY=$(CreateNetDeploymentEntity "$PROPORSAL_NET_NAME" "true" "$MGMNT_NET_ID" "$DC_ID")
 echo "==========================="
 echo " NETWORK_DEPLOY:"
@@ -203,4 +205,21 @@ echo "==========================="
 echo " NETWORK_DEPLOY:"
 echo "$NETWORK_DEPLOY" | jq
 echo "==========================="
+echo " Applay network deployment..."
 echo " result: "$(ApplayNetDeployment "$DC_ID" "$NETWORK_DEPLOY")
+
+
+echo
+# СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: ВЫЧИСЛИТЕЛЬНЫЕ РЕСУРСЫ
+echo "Create compute proporsal: "$PROPORSAL_COMPUTE_NAME
+COMPUTE_DEPLOY=$(CreateComputeDeploymentEntity "$PROPORSAL_COMPUTE_NAME" "1" "$PROPORSAL_COMPUTE_CPU_CORES_MAX" "1000" "$PROPORSAL_COMPUTE_CPU_SPEED_MAX" "1024" "$PROPORSAL_COMPUTE_RAM_MAX" "$PROPORSAL_COMPUTE_VRAM_MAX")
+echo "==========================="
+echo " COMPUTE_DEPLOY:"
+echo "$COMPUTE_DEPLOY" | jq
+echo "==========================="
+echo
+echo " Applay compute deployment..."
+echo " result: "$(ApplayComputeDeployment "$DC_ID" "$COMPUTE_DEPLOY")
+
+
+
