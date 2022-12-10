@@ -222,4 +222,23 @@ echo " Applay compute deployment..."
 echo " result: "$(ApplayComputeDeployment "$DC_ID" "$COMPUTE_DEPLOY")
 
 
+echo
+# СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: ХРАНИЛИЩА
+echo "Create storage proporsal: ""$PROPORSAL_STOR_NAME"
+echo " Create storage deployment with ""$STOR_HDD_NAME""..."
+STORAGE_DEPLOY=$(CreateStorageDeploymentEntity "$PROPORSAL_STOR_NAME" "true" "$LOCAL_STORAGE_ID" "$PROPORSAL_STOR_HDD_SIZE" "$DC_ID")
+echo "==========================="
+echo " STORAGE_DEPLOY:"
+echo "$STORAGE_DEPLOY" | jq
+echo "==========================="
+echo " Add storage to deployment: ""$STOR_ISO_NAME"
+STORAGE_DEPLOY=$(AddStorageToStorDeploymentEntity "$STORAGE_DEPLOY" "1" "$ISO_STORAGE_ID" "$PROPORSAL_STOR_ISO_SIZE" "$DC_ID")
+echo "==========================="
+echo " STORAGE_DEPLOY:"
+echo "$STORAGE_DEPLOY" | jq
+echo "==========================="
+echo " Applay storage deployment..."
+echo " result: "$(ApplayStorageDeployment "$DC_ID" "$STORAGE_DEPLOY")
+
+
 

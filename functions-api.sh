@@ -341,6 +341,23 @@ function GetStorageId(){
 	echo $(JsonGetKey "$result" '.[0].id.id')
 }
 
+function GetStorageParameter () {
+	local storage="$1"
+	local param_name="$2"
+	local result=$(JsonGetKey "$storage" "$param_name")
+	echo "$result"
+}
+
+# Get storage properties
+# Usage:
+# GetStorage "STOR_ID" "DC_ID"
+function GetStorage () {
+	local stor_id="$1"
+	local dc_id="$2"
+	local "url=/dcs/""$dc_id""/storages/""$stor_id"
+	local result=$(CurlGet "$url")
+	echo "$result"
+}
 
 # Get storage status
 # Usage:
@@ -348,9 +365,9 @@ function GetStorageId(){
 function GetStorageStatus () {
 	local stor_id="$1"
 	local dc_id="$2"
-	local "url=/dcs/""$dc_id""/storages/""$stor_id"
-	local result=$(CurlGet "$url")
-	echo $(JsonGetKey "$result" '.storageStatus')
+	local storage=$(GetStorage "$stor_id" "$dc_id")
+	local result=$(GetStorageParameter $storage '.storageStatus')
+	echo "$result"
 }
 
 
@@ -773,35 +790,48 @@ function ApplayComputeDeployment () {
 }
 
 
-function CreateStorageEntity () {
-	local deployment_name
-	local enabled
+
+function AddStorageToStorDeploymentEntity () {
+	local deployment="$1"
+	local profile_number='.storages['"$2"']'
+	local stor_id="$3"
+	local size="$4"
+	local dc_id="$5"
+	local storage=$(GetStorage "$stor_id" "$dc_id")
+	local template='{
+					"id": {
+							"dcId": "'"$dc_id"'",
+							"storageId": "'"$stor_id"'"
+							},
+					"sizeMax": '"$size"'
+					}'
+	deployment=$(JsonChangeKey "$deployment" "$profile_number" "$template")
+	echo "$deployment"
+}
+
+function CreateStorageDeploymentEntity () {
+	local deployment_name="$1"
+	local enabled="$2"
+	local stor_id="$3"
+	local size="$4"
+	local dc_id="$5"
 	local deployment_descr="$deployment_name"
 	local template='{
 					"deploymentDescription": "'"$deployment_descr"'",
 					"deploymentName": "'"$deployment_name"'",
-					"enabled": '"$enabled"',
-					"storages": [
-									{
-										"id": {
-										"dcId": "6143e252-a5cb-4f41-bb8f-fd24fb491114",
-										"storageId": "3d1c72c4-8a53-4ace-8fa6-1b5d849e09fd"
-										},
-										"sizeMax": 10240
-									},
-									{
-										"id": {
-										"dcId": "6143e252-a5cb-4f41-bb8f-fd24fb491114",
-										"storageId": "f74cc191-eec5-49cf-bb51-e861d1bcaf3b"
-										},
-										"sizeMax": 10240
-									}
-								]
+					"enabled": '"$enabled"'
 					}'
+	template=$(AddStorageToStorDeploymentEntity "$template" "0" "$stor_id" "$size" "$dc_id")
 	echo "$template"
 }
 
-
+function ApplayStorageDeployment () {
+	local dc_id="$1"
+	local deployment="$2"
+	local url="/dcs/""$dc_id""/storage-deployments"
+	local result=$(CurlPost "$url" "$deployment")
+	echo "$result"
+}
 
 function GetDCparams () {
 	local dc_id=$(GetDCID "$DC_NAME")
