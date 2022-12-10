@@ -669,7 +669,7 @@ function ApplyNetToCluster () {
 # Return: NetDeploymentEntity in JSON formated string
 function AddNetworkToNetDeploymentEntity () {
 	local deployment="$1"
-	local profile_number=".networkProfiles[""$2""]"
+	local profile_number='.networkProfiles['"$2"']'
 	local net_id="$3"
 	local dc_id="$4"
 	local network=$(GetNetwork "$net_id" "$dc_id")

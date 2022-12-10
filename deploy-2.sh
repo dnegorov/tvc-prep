@@ -199,8 +199,8 @@ echo "==========================="
 echo " NETWORK_DEPLOY:"
 echo "$NETWORK_DEPLOY" | jq
 echo "==========================="
-echo " Add to deployment network: ""$SU_NET_INTERCONNECT_NAME"
-NETWORK_DEPLOY=$(AddNetworkToNetDeploymentEntity "$NETWORK_DEPLOY" "$INTERCONNECT_ID" "$DC_ID")
+echo " Add network to deployment: ""$SU_NET_INTERCONNECT_NAME"
+NETWORK_DEPLOY=$(AddNetworkToNetDeploymentEntity "$NETWORK_DEPLOY" "1" "$INTERCONNECT_ID" "$DC_ID")
 echo "==========================="
 echo " NETWORK_DEPLOY:"
 echo "$NETWORK_DEPLOY" | jq
