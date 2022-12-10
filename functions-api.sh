@@ -726,6 +726,17 @@ function ApplayNetDeployment () {
 	echo "$result"
 }
 
+function GetNetworkDeploymentID () {
+	local deployment_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(deploymentName,""$deployment_name"")")
+	local url="/dcs/""$dc_id""/network-deployments?query=""$query"
+	local network=$(CurlGet "$url")
+	local result=$(JsonGetKey "$network" '.[0].id.id')
+	echo "$result"
+}
+
+
 # Create ComputeDeploymentEntity
 # Usage:
 # CreateComputeDeploymentEntity "DEPLOYMENT_NAME" "CPU_CORES_MIN" "CPU_CORES_MAX" "CPU_SPEED_MIN" "CPU_SPEED_MAX" "RAM_MIN" "RAM_MAX" "VRAM_MAX"
@@ -789,6 +800,15 @@ function ApplayComputeDeployment () {
 	echo "$result"
 }
 
+function GetComputeDeploymentID () {
+	local deployment_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(deploymentName,""$deployment_name"")")
+	local url="/dcs/""$dc_id""/compute-deployments?query=""$query"
+	local compute=$(CurlGet "$url")
+	local result=$(JsonGetKey "$compute" '.[0].id.id')
+	echo "$result"
+}
 
 
 function AddStorageToStorDeploymentEntity () {
@@ -830,6 +850,17 @@ function ApplayStorageDeployment () {
 	local deployment="$2"
 	local url="/dcs/""$dc_id""/storage-deployments"
 	local result=$(CurlPost "$url" "$deployment")
+	echo "$result"
+}
+
+
+function GetStorageDeploymentID () {
+	local deployment_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(deploymentName,""$deployment_name"")")
+	local url="/dcs/""$dc_id""/storage-deployments?query=""$query"
+	local storage=$(CurlGet "$url")
+	local result=$(JsonGetKey "$storage" '.[0].id.id')
 	echo "$result"
 }
 

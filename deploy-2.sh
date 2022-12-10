@@ -207,7 +207,8 @@ echo "$NETWORK_DEPLOY" | jq
 echo "==========================="
 echo " Applay network deployment..."
 echo " result: "$(ApplayNetDeployment "$DC_ID" "$NETWORK_DEPLOY")
-
+NETWORK_DEPLOYMENT_ID=$(GetNetworkDeploymentID "$PROPORSAL_NET_NAME" "$DC_ID")
+echo " Network deployment ID: "$NETWORK_DEPLOYMENT_ID
 
 echo
 # СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: ВЫЧИСЛИТЕЛЬНЫЕ РЕСУРСЫ
@@ -220,7 +221,8 @@ echo "==========================="
 echo
 echo " Applay compute deployment..."
 echo " result: "$(ApplayComputeDeployment "$DC_ID" "$COMPUTE_DEPLOY")
-
+COMPUTE_DEPLOYMENT_ID=$(GetComputeDeploymentID "$PROPORSAL_COMPUTE_NAME" "$DC_ID")
+echo " Compute deployment ID: "$COMPUTE_DEPLOYMENT_ID
 
 echo
 # СОЗДАЕМ ПРЕДЛОЖЕНИЕ РАЗВЕРТКИ: ХРАНИЛИЩА
@@ -239,6 +241,9 @@ echo "$STORAGE_DEPLOY" | jq
 echo "==========================="
 echo " Applay storage deployment..."
 echo " result: "$(ApplayStorageDeployment "$DC_ID" "$STORAGE_DEPLOY")
+STORAGE_DEPLOYMENT_ID=$(GetStorageDeploymentID "$PROPORSAL_STOR_NAME" "$DC_ID")
+echo " Storage deployment ID: "$STORAGE_DEPLOYMENT_ID
+
 
 
 
