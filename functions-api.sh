@@ -689,14 +689,12 @@ function CreateNetDeploymentEntity () {
 	local net_id="$3"
 	local dc_id="$4"
 	local deployment_descr="$deployment_name"
-	local network=$(GetNetwork "$net_id" "$dc_id")
-	local net_profiles=$(GetNetworkParameter "$network" '.networkProfiles[0]')
 	local template='{
 					"deploymentDescription": "'"$deployment_descr"'",
 					"deploymentName": "'"$deployment_name"'",
 					"enabled": '"$enabled"'
 					}'
-	template=$(JsonChangeKey "$template" ".networkProfiles[0]" "$net_profiles")
+	template=$(AddNetworkToNetDeploymentEntity "$template" "0" "$net_id" "$dc_id")
 	echo "$template"
 }
 
@@ -773,6 +771,36 @@ function ApplayComputeDeployment () {
 	local result=$(CurlPost "$url" "$deployment")
 	echo "$result"
 }
+
+
+function CreateStorageEntity () {
+	local deployment_name
+	local enabled
+	local deployment_descr="$deployment_name"
+	local template='{
+					"deploymentDescription": "'"$deployment_descr"'",
+					"deploymentName": "'"$deployment_name"'",
+					"enabled": '"$enabled"',
+					"storages": [
+									{
+										"id": {
+										"dcId": "6143e252-a5cb-4f41-bb8f-fd24fb491114",
+										"storageId": "3d1c72c4-8a53-4ace-8fa6-1b5d849e09fd"
+										},
+										"sizeMax": 10240
+									},
+									{
+										"id": {
+										"dcId": "6143e252-a5cb-4f41-bb8f-fd24fb491114",
+										"storageId": "f74cc191-eec5-49cf-bb51-e861d1bcaf3b"
+										},
+										"sizeMax": 10240
+									}
+								]
+					}'
+	echo "$template"
+}
+
 
 
 function GetDCparams () {

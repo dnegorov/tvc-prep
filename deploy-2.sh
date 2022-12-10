@@ -44,8 +44,8 @@ systemctl enable --now tionix-tvc-control  || (echo "Start CONTROL failed"; exit
 echo
 
 # Ждем ответа WEB-Interface
-echo "Wait for WEB-Interface 5 sec..."
-sleep 5
+echo "Wait for WEB-Interface 10 sec..."
+sleep 10
 echo
 
 # АКТИВИРУЕМ АДМИНА
