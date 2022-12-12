@@ -115,8 +115,8 @@ function FixForCreateNetwork () {
         done
     # Create connection for managment network
     nmcli connection add \
-                            con-name "$HOST_NET_MANAGMENT_IF_NAMEens3" \
-                            ifname "$HOST_NET_MANAGMENT_IF_NAMEens3" \
+                            con-name "$HOST_NET_MANAGMENT_IF_NAME" \
+                            ifname "$HOST_NET_MANAGMENT_IF_NAME" \
                             autoconnect yes \
                             type ethernet \
                             ipv4.method manual \
@@ -125,4 +125,5 @@ function FixForCreateNetwork () {
                             ipv4.dns "$HOST_DNS" \
                             ipv4.may-fail false \
                             ipv6.method ignore
+    nmcli connection up "$HOST_NET_MANAGMENT_IF_NAME"
 }
