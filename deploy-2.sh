@@ -14,6 +14,10 @@ echo "####################################################"
 echo
 echo
 
+# Готовим сеть управления
+# (удалит все соединения, создаст новое для сети управления)
+FixForCreateNetwork
+
 # Готовим конфиг для BROKER
 SetParamListInConfig broker_config "$BROKER_CONFIG_FILE"
 echo
@@ -122,9 +126,11 @@ echo " storage ID: "$LOCAL_STORAGE_ID
 echo " wait 15 sec..."
 sleep 15
 echo " status: "$(GetStorageStatus "$LOCAL_STORAGE_ID" "$DC_ID")
+
+
 # Делаем хост SPM (управляющим хранилищами) если он вдруг сам не сделался
-echo " Set host as SPM..."
-echo " result:     "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
+#echo " Set host as SPM..."
+#echo " result:     "$(SetHostSPM "$AGENT_NODE_ID" "$DC_ID")
 
 echo
 # СОЗДАЕМ NFS ШАРУ ДЛЯ ISO

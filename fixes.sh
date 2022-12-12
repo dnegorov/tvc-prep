@@ -105,4 +105,24 @@ function FixForManagmentIF () {
     echo "$IF_MANAGMENT_CONFIG" > "$if_dir"/"$HOST_NET_MANAGMENT_IF_NAME"".nmconnection"
 }
 
-
+# Prepare MANAGMENT network interface
+function FixForCreateNetwork () {
+    echo ${FUNCNAME[0]}":"
+    # Delete all existing ethernet connections
+    for connection in $(nmcli con show | grep ether | awk {print } ) 
+        do 
+            nmcli con delete $connection
+        done
+    # Create connection for managment network
+    nmcli connection add \
+                            con-name "$HOST_NET_MANAGMENT_IF_NAMEens3" \
+                            ifname "$HOST_NET_MANAGMENT_IF_NAMEens3" \
+                            autoconnect yes \
+                            type ethernet \
+                            ipv4.method manual \
+                            ipv4.address "$HOST_IP"/"$HOST_IP_MASK" \
+                            ipv4.gateway "$HOST_IP_GW" \
+                            ipv4.dns "$HOST_DNS" \
+                            ipv4.may-fail false \
+                            ipv6.method ignore
+}
