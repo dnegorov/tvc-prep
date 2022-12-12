@@ -109,7 +109,7 @@ function FixForManagmentIF () {
 function FixForCreateNetwork () {
     echo ${FUNCNAME[0]}":"
     # Delete all existing ethernet connections
-    for connection in $(nmcli con show | grep ether | awk {print } ) 
+    for connection in $(nmcli con show | grep ether | awk {print $2} ) 
         do 
             nmcli con delete $connection
         done
