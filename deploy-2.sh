@@ -245,5 +245,43 @@ STORAGE_DEPLOYMENT_ID=$(GetStorageDeploymentID "$PROPORSAL_STOR_NAME" "$DC_ID")
 echo " Storage deployment ID: "$STORAGE_DEPLOYMENT_ID
 
 
+echo
+# СОЗДАЕМ ВИРТУАЛЬНЫЙ ДЦ
+echo "Create Virtual DC: ""$VIRTUAL_DC_NAME"
+VIRTUAL_DC=$(CreateVirtualDCEntity "$VIRTUAL_DC_NAME" "true")
+echo " Add compute deployment: ""$COMPUTE_DEPLOYMENT_ID"
+VIRTUAL_DC=$(AddDeploymentToVirtualDCEntity "$VIRTUAL_DC" "0" "COMPUTE" "$COMPUTE_DEPLOYMENT_ID")
+echo " Add network deployment: ""$NETWORK_DEPLOYMENT_ID"
+VIRTUAL_DC=$(AddDeploymentToVirtualDCEntity "$VIRTUAL_DC" "1" "NETWORK" "$NETWORK_DEPLOYMENT_ID")
+echo " Add storage deployment: ""$STORAGE_DEPLOYMENT_ID"
+VIRTUAL_DC=$(AddDeploymentToVirtualDCEntity "$VIRTUAL_DC" "2" "STORAGE" "$STORAGE_DEPLOYMENT_ID")
+echo "==========================="
+echo " VIRTUAL_DC:"
+echo "$VIRTUAL_DC" | jq
+echo "==========================="
+echo " Applay Virtual DC..."
+echo " result: "$(CreateVirtualDC "$DC_ID" "$VIRTUAL_DC")
+VIRTUAL_DC_ID=$(GetVirtualDCID "$VIRTUAL_DC_NAME" "$DC_ID")
+echo " Virtual DC ID: "$VIRTUAL_DC_ID
+
+
+echo
+# СОЗДАЕМ ПРОЕКТ В НАШ ВИРТУАЛЬНЫЙ ДЦ
+echo "Create Project: ""$PROJECT_NAME"
+PROJECT=$(CreateProjectEntity "$PROJECT_NAME" "true" "$VIRTUAL_DC_ID" "$REALM_ID")
+echo " Add compute deployment: ""$COMPUTE_DEPLOYMENT_ID"
+PROJECT=$(AddDeploymentToProjectEntity "$PROJECT" "0" "COMPUTE" "$COMPUTE_DEPLOYMENT_ID")
+echo " Add network deployment: ""$NETWORK_DEPLOYMENT_ID"
+PROJECT=$(AddDeploymentToProjectEntity "$PROJECT" "1" "NETWORK" "$NETWORK_DEPLOYMENT_ID")
+echo " Add storage deployment: ""$STORAGE_DEPLOYMENT_ID"
+PROJECT=$(AddDeploymentToProjectEntity "$PROJECT" "2" "STORAGE" "$STORAGE_DEPLOYMENT_ID")
+echo "==========================="
+echo " PROJECT:"
+echo "$PROJECT" | jq
+echo "==========================="
+echo " Applay Project..."
+echo " result: "$(CreateProject "$VIRTUAL_DC_ID" "$PROJECT")
+PROJECT_ID=$(GetProjectID "$PROJECT_NAME" "$VIRTUAL_DC_ID")
+echo " Project ID: "$PROJECT_ID
 
 

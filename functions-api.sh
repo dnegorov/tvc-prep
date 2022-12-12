@@ -726,6 +726,9 @@ function ApplayNetDeployment () {
 	echo "$result"
 }
 
+# Get Network Deployment ID
+# Usage:
+# GetStorageDeploymentID "Deployment Name" "DC_ID"
 function GetNetworkDeploymentID () {
 	local deployment_name="$1"
 	local dc_id="$2"
@@ -800,6 +803,9 @@ function ApplayComputeDeployment () {
 	echo "$result"
 }
 
+# Get Compute Deployment ID
+# Usage:
+# GetStorageDeploymentID "Deployment Name" "DC_ID"
 function GetComputeDeploymentID () {
 	local deployment_name="$1"
 	local dc_id="$2"
@@ -811,6 +817,10 @@ function GetComputeDeploymentID () {
 }
 
 
+# Add to StorageDeploymentEntity new storage
+# Usage:
+# AddStorageToStorDeploymentEntity "StorageDeployEntity" "PROFILE_NUMBER" "STORAGE_ID" "DC_ID"
+# Return: StorageDeploymentEntity in JSON formated string
 function AddStorageToStorDeploymentEntity () {
 	local deployment="$1"
 	local profile_number='.storages['"$2"']'
@@ -829,6 +839,17 @@ function AddStorageToStorDeploymentEntity () {
 	echo "$deployment"
 }
 
+
+# Create StorageDeploymentEntity
+# Usage:
+# CreateStorageDeploymentEntity "DEPLOYMENT_NAME" "ENABLED" "STORAGE_ID" "SIZE" "DC_ID"
+# Return: StorageDeploymentEntity in JSON formated string
+# Parameters:
+# DEPLOYMENT_NAME: string 
+# ENABLED: boolean ("true"/"false") - enabled/disabled status after creation
+# STORAGE_ID: string
+# SIZE: integer (in Mb from 1024 to 1024000000 max) - accessable size from whole volume
+# DC_ID: string 
 function CreateStorageDeploymentEntity () {
 	local deployment_name="$1"
 	local enabled="$2"
@@ -845,6 +866,9 @@ function CreateStorageDeploymentEntity () {
 	echo "$template"
 }
 
+# Applay StorageDeploymentEntity to DC
+# Usage:
+# ApplayStorageDeployment "DC_ID" "StorageDeploymentEntity"
 function ApplayStorageDeployment () {
 	local dc_id="$1"
 	local deployment="$2"
@@ -854,6 +878,9 @@ function ApplayStorageDeployment () {
 }
 
 
+# Get Storage Deployment ID
+# Usage:
+# GetStorageDeploymentID "Deployment Name" "DC_ID"
 function GetStorageDeploymentID () {
 	local deployment_name="$1"
 	local dc_id="$2"
@@ -864,7 +891,168 @@ function GetStorageDeploymentID () {
 	echo "$result"
 }
 
+
+
+
+# Add to VirtualDCEntity new (Compute/Network/Storage)DeploymentEntity
+# Usage:
+# AddDeploymentToVirtualDCEntity "VirtualDCEntity" "PROFILE_NUMBER" "DEPLOYMENT_TYPE" "DEPLOYMENT_ID"
+# Return: VirtualDCEntity in JSON formated string
+# Parameters:
+# VirtualDCEntity: VirtualDCEntity in JSON formated string
+# PROFILE_NUMBER:  integer (from 0 to ?)
+# DEPLOYMENT_TYPE: string - can be "COMPUTE" "NETWORK" "STORAGE"
+# DEPLOYMENT_ID:   string
+function AddDeploymentToVirtualDCEntity () {
+	local vdc="$1"
+	local profile_number='.vdcDeployments['"$2"']'
+	local deployment_type="$3"
+	local deployment_id="$4"
+	local template='{
+					"deploymentType": "'"$deployment_type"'",
+					"id": {
+							"deploymentId": "'"$deployment_id"'"
+							}
+					}'
+	vdc=$(JsonChangeKey "$vdc" "$profile_number" "$template")
+	echo "$vdc"
+}
+
+
+# Create VirtualDCEntity
+# VirtualDCEntity can be created without initial deployments.
+# If you want to add initial deployments, do it after creation with AddDeploymentToVirtualDCEntity
+# Usage:
+# CreateVirtualDCEntity "VDC_NAME" "ENABLED" "DC_ID"
+# Return: VirtualDCEntity in JSON formated string
+# Parameters:
+# VDC_NAME: string 
+# ENABLED: boolean ("true"/"false")
+function CreateVirtualDCEntity () {
+	local vdc_name="$1"
+	local enabled="$2"
+	local vdc_descr="$vdc_name"
+	local template='{
+					"vdcDescription": "'"$vdc_descr"'",
+					"vdcName": "'"$vdc_name"'",
+					"enabled": '"$enabled"'
+					}'
+	echo "$template"
+}
+
+
+# Create VirtualDC to DC
+# Usage:
+# CreateVirtualDC "DC_ID" "VirtualDCEntity"
+function CreateVirtualDC () {
+	local dc_id="$1"
+	local vdc="$2"
+	local url="/dcs/""$dc_id""/vdcs"
+	local result=$(CurlPost "$url" "$vdc")
+	echo "$result"
+}
+
+
+# Get Virtual DC ID
+# Usage:
+# GetVirtualDCID "Virtual DC Name" "DC_ID"
+function GetVirtualDCID () {
+	local vdc_name="$1"
+	local dc_id="$2"
+	local query=$(UrlEncode "in(vdcName,""$vdc_name"")")
+	local url="/dcs/""$dc_id""/vdcs?query=""$query"
+	local vdc=$(CurlGet "$url")
+	local result=$(JsonGetKey "$vdc" '.[0].id.id')
+	echo "$result"
+}
+
+
+
+
+# Add to ProjectEntity new (Compute/Network/Storage)DeploymentEntity
+# Usage:
+# AddDeploymentToProjectEntity "ProjectEntity" "PROFILE_NUMBER" "DEPLOYMENT_TYPE" "DEPLOYMENT_ID"
+# Return: ProjectEntity in JSON formated string
+# Parameters:
+# ProjectEntity: ProjectEntity in JSON formated string
+# PROFILE_NUMBER:  integer (from 0 to ?)
+# DEPLOYMENT_TYPE: string - can be "COMPUTE" "NETWORK" "STORAGE"
+# DEPLOYMENT_ID:   string
+function AddDeploymentToProjectEntity () {
+	local project="$1"
+	local profile_number='.projectDeployments['"$2"']'
+	local deployment_type="$3"
+	local deployment_id="$4"
+	local template='{
+					"deploymentType": "'"$deployment_type"'",
+					"id": {
+							"deploymentId": "'"$deployment_id"'"
+							}
+					}'
+	project=$(JsonChangeKey "$project" "$profile_number" "$template")
+	echo "$project"
+}
+
+
+# Create ProjectEntity
+# ProjectEntity can be created without initial deployments.
+# If you want to add initial deployments, do it after creation with AddDeploymentToProjectEntity
+# Usage:
+# CreateProjectEntity "PROJECT_NAME" "ENABLED" "VDC_ID" "REALM_ID"
+# Return: ProjectEntity in JSON formated string
+# Parameters:
+# VDC_NAME: string 
+# ENABLED: boolean ("true"/"false")
+function CreateProjectEntity () {
+	local project_name="$1"
+	local enabled="$2"
+	local vdc_id="$3"
+	local realm_id="$4"
+	local project_descr="$project_name"
+	local template='{
+					"projectDescription": "'"$project_descr"'",
+					"projectName": "'"$project_name"'",
+					"enabled": '"$enabled"',
+					"realmId": "'"$realm_id"'",
+					"vdcId": "'"$vdc_id"'"
+					}'
+	echo "$template"
+}
+
+
+# Create CreateProject to Virtual DC
+# Usage:
+# CreateProject "VDC_ID" "ProjectEntity"
+function CreateProject () {
+	local vdc_id="$1"
+	local project="$2"
+	local url="/vdcs/""$vdc_id""/projects"
+	local result=$(CurlPost "$url" "$project")
+	echo "$result"
+}
+
+
+# Get Project ID
+# Usage:
+# GetProjectID "Project Name" "VDC_ID"
+function GetProjectID () {
+	local project_name="$1"
+	local vdc_id="$2"
+	local query=$(UrlEncode "in(projectName,""$project_name"")")
+	local url="/vdcs/""$vdc_id""/projects?query=""$query"
+	local project=$(CurlGet "$url")
+	local result=$(JsonGetKey "$project" '.[0].id.id')
+	echo "$result"
+}
+
+
+
+
+###########################################################################
+
+# Get base installation IDs based on main config
 function GetDCparams () {
+	REALM_ID=$(GetMasterRealmID)
 	local dc_id=$(GetDCID "$DC_NAME")
 	local cluster_id=$(GetClusterID 'Основной' "$dc_id")
 	local mgmtnet_id=$(GetNetworkID 'tvcmgmt' "$dc_id")
@@ -876,6 +1064,7 @@ function GetDCparams () {
 	echo
 	echo "DC Parameters"
 	echo " Realm:              "$REALM
+	echo " Realm_ID:           "$REALM_ID
 	echo " DC name:            "$DC_NAME
 	echo " DC-ID:              "$dc_id
 	echo " Cluster ID:         "$cluster_id
