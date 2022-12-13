@@ -188,7 +188,10 @@ echo " Get ""$SU_NET_INTERCONNECT_NAME"" ID..."
 INTERCONNECT_ID=$(GetNetworkID "$SU_NET_INTERCONNECT_NAME" "$DC_ID")
 echo " "$SU_NET_INTERCONNECT_NAME" ID: "$INTERCONNECT_ID
 echo " Set network roles for cluster..."
-IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "true" "false" "false" "false" "false" "false")
+# Сделать обязательной сетью на узлах
+# IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "true" "false" "false" "false" "false" "false")
+# Сделать НЕобязательной сетью на узлах
+IC_NET_CLUSTER_ROLES=$(SetClusterNetRoles "false" "false" "false" "false" "false" "false")
 echo "==========================="
 echo " IC_NET_CLUSTER_ROLES:"
 echo "$IC_NET_CLUSTER_ROLES" | jq
