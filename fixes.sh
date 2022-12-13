@@ -109,10 +109,12 @@ function FixForManagmentIF () {
 function FixForCreateNetwork () {
     echo ${FUNCNAME[0]}":"
     # Delete all existing ethernet connections
-    for connection in $(nmcli con show | grep ether | awk {print $2} ) 
+    for connection in $(nmcli --fields uuid con show | grep -v UUID) 
         do 
             nmcli con delete $connection
         done
+    # Delete all config files in /etc/NetworkManager/system-connections/
+    rm -rf /etc/NetworkManager/system-connections/*.nmconnections
     # Create connection for managment network
     nmcli connection add \
                             con-name "$HOST_NET_MANAGMENT_IF_NAME" \
