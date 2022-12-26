@@ -1050,6 +1050,47 @@ function GetProjectID () {
 
 ###########################################################################
 
+# Create HDD in vDC
+# Usage:
+# CreateHDD "Disk_Name" "Size_in_Bytes" "VDC_ID" "STORAGE_DEPLOYMENT_ID" "STORAGE_ID"
+function CreateHDD () {
+	local volume_name="$1"
+	local capacity="$2"
+	local vdc_id="$3"
+	local stor_deployment_id="$4"
+	local storage_id="$5"
+	#snapshot: true, false
+	local snapshot="false"
+	# template: true, false
+	local template="true"
+	# provision_type: THICK, THIN
+	local provision_type='THIN'
+	# volume_format: ISO, QCOW2, RAW
+	local volume_format='QCOW2'
+	# volume_status: ACTIVE, ERROR, LOCKED 
+	local volume_status='ACTIVE'
+	local hdd_entity='{
+						"capacity": '"$capacity"',
+						"provisionType": "'"$provision_type"'",
+						"snapshot": '"$snapshot"',
+						"storageDeploymentId": "'"$stor_deployment_id"'",
+						"storageId": "'"$storage_id"'",
+						"template": '"$template"',
+						"vdcId": "'"$vdc_id"'",
+						"volumeFormat": "'"$volume_format"'",
+						"volumeName": "'"$volume_name"'",
+						"volumeStatus": "'"$volume_status"'"
+						}'
+
+	local url="/vdcs/""$vdc_id""/volumes"
+	local result=$(CurlPost "$url" "$hdd_entity")
+	echo "$result"
+}
+
+
+
+###########################################################################
+
 # Get base installation IDs based on main config
 function GetDCparams () {
 	REALM_ID=$(GetMasterRealmID)
