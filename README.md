@@ -15,16 +15,18 @@ dnf -y install curl jq
 1. Uninstall managment packages:
 
     ```
-    dnf -y remove tionix-tvc-broker tionix-tvc-control
+    dnf -y remove vcore-broker vcore-control
     ```
+Old names (pre 1.3.0): tionix-tvc-broker tionix-tvc-control
 
 2. Remove some dirs:
 
     ```
-    rm -rf /opt/tvc/broker
-    rm -rf /opt/tvc/control
-    rm -rf /opt/tvc/ignite
+    rm -rf /opt/vcore/broker
+    rm -rf /opt/vcore/control
+    rm -rf /opt/vcore/ignite
     ```
+Old path (pre 1.3.0): /opt/tvc
 
 3. Replay scripts for Stage 2
 
