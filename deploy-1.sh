@@ -26,7 +26,7 @@ echo
 
 # Ставим Систему Управления
 echo "Install Managment System:"
-dnf -y install tionix-tvc-broker tionix-tvc-control
+dnf -y install "$VCORE_SERVICE_BROKER_PACKAGE" "$VCORE_SERVICE_CONTROL_PACKAGE"
 echo
 
 # Ставим NetworkManager-tui
