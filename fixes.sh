@@ -159,3 +159,21 @@ blacklist {
     systemctl restart multipathd.service
 
 }
+
+
+# Fix repo for 1.3.0 release vcore-hyper-os-1.3.0-20230227-stable.iso
+function FixRepo13020230227 () {
+    echo ${FUNCNAME[0]}":"
+    local repo_file="/etc/yum.repos.d/vcore-engine.repo"
+    local repo='[vcore-engine]
+name=vCore Engine $releasever
+baseurl=https://vcore-public:vcore-public@maven.tionix.ru/artifactory/vcore-rpm-dev/fedora/linux/$releasever/$basearch
+enabled=1
+gpgcheck=0
+'
+
+echo "$repo" > "$repo_file"
+
+}
+
+
