@@ -38,19 +38,29 @@ echo
 # ЗАПУСКАЕМ СЕРВИСЫ
 # BROKER всегда первый
 echo "Start BROKER..."
-systemctl enable --now tionix-tvc-broker || (echo "Start BROKER failed"; exit 1)
+systemctl enable --now "$VCORE_SERVICE_BROKER" || (echo "Start BROKER failed"; exit 1)
 echo
 echo "Wait BROKER 5 sec..."
 sleep 5
 # CONTROL вторым
 echo "Start CONTROL..."
-systemctl enable --now tionix-tvc-control  || (echo "Start CONTROL failed"; exit 1)
+systemctl enable --now "$VCORE_SERVICE_CONTROL"  || (echo "Start CONTROL failed"; exit 1)
 echo
 
 # Ждем ответа WEB-Interface
 echo "Wait for WEB-Interface 10 sec..."
 sleep 10
 echo
+
+# Включаем firewall для сервисов и порта веб-интерфейса
+# актуально с версии 1.3
+echo "Add firewall rules..."
+firewall-cmd --add-service="$VCORE_SERVICE_CONTROL" --permanent
+firewall-cmd --add-service="$VCORE_SERVICE_BROKER" --permanent
+firewall-cmd --add-port="$SU_PORT/tcp" --permanent
+firewall-cmd --reload
+echo
+
 
 # АКТИВИРУЕМ АДМИНА
 echo "Create ADMIN user..."
@@ -94,9 +104,9 @@ echo
 
 # СТАРТУЕМ AGENT СЕРВИС
 echo "Enable AGENT service..."
-systemctl enable tionix-tvc-agent || (echo "Enable AGENT failed"; exit 1)
+systemctl enable "$VCORE_SERVICE_AGENT" || (echo "Enable AGENT failed"; exit 1)
 echo "Restart AGENT service..."
-systemctl restart tionix-tvc-agent || (echo "Restart AGENT failed"; exit 1)
+systemctl restart "$VCORE_SERVICE_AGENT" || (echo "Restart AGENT failed"; exit 1)
 echo "Wait AGENT 5 sec..."
 sleep 5
 echo

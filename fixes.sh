@@ -35,7 +35,7 @@ function FixForDisableGUI () {
     sed -i '/XSRUNN/,/fi$/s/^/\#&/' "$file_path"
     sed -i 's/^\#\#/\#/g' "$file_path"
     
-    local notification=$(echo 'echo -e "\n\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m\n"')
+    local notification=$(echo 'echo -e "\n\033[1;91mRun TVC GUI with command: ""$VCORE_BASE_NAME""-hyper-configurator\033[0m\n"')
     # echo -e 'Add notification "'"\033[1;91mRun TVC GUI with command: tvc-hyper-configurator\033[0m"'" to '"$file_path"
     # ApendFileUniqStr "$notification" "$file_path"
 }
@@ -55,12 +55,12 @@ function FixForDisableSELinux () {
 
 # Can not create storage on local disk
 function FixForLocalStorage () {
-    local tvc_dir="/home/tvc/storages"
+    local tvc_dir="/home/""$VCORE_BASE_NAME""/storages"
     echo ${FUNCNAME[0]}":"
     echo "Create directory: "$tvc_dir
     mkdir -p "$tvc_dir"
     echo "Change owner: "$tvc_dir
-    chown -R tvc:tvc "$tvc_dir"
+    chown -R "$VCORE_SERVICE_USER":"$VCORE_SERVICE_GROUP" "$tvc_dir"
 }
 
 # Change IF names from eth0 to enp4s0 format
@@ -128,4 +128,34 @@ function FixForCreateNetwork () {
                             ipv4.may-fail false \
                             ipv6.method ignore
     nmcli connection up "$HOST_NET_MANAGMENT_IF_NAME"
+}
+
+# Add to blacklist /dev/sd*
+function FixForMultiPath () {
+    echo ${FUNCNAME[0]}":"
+    local config_path="/etc/multipath/conf.d/00-defaults.conf"
+    local config_template='
+defaults {
+    user_friendly_names no
+    find_multipaths no
+    enable_foreign "^$"
+}
+blacklist_exceptions {
+    property "(SCSI_IDENT_|ID_WWN)"
+}
+blacklist {
+    devnode "^(ram|nvme|drbd|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+    devnode "^hd[a-z]"
+    devnode "^vd[a-z]"
+    devnode "^sd[a-z]
+    devnode "^rbd*"
+    devnode "^cciss!c[0-9]d[0-9].*"
+}
+'
+    echo "Change: ""$config_path"
+    echo "$config_template" > "$config_path"
+    
+    echo "Restart service: restart multipathd.service"
+    systemctl restart multipathd.service
+
 }

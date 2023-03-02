@@ -151,7 +151,7 @@ function PrepareStorageDirs () {
     mkdir -p "$mount_dir"/{"$iso_dir","$hdd_dir"}
 
     echo "Change owner: "$mount_dir
-    chown -R tvc "$mount_dir"
+    chown -R "$VCORE_SERVICE_USER" "$mount_dir"
 }
 
 # Prepare NFS share
