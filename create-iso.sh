@@ -20,4 +20,4 @@ rm -rf "$ISO_OUTPUT_DIR""/*"
 
 echo "Create ISO for: ""$HOST_NAME"
 echo "Output file:    ""$ISO_FILE_NAME"
-mkisofs -joliet -rock -volid "$ISO_LABEL" -output "$ISO_FILE_NAME" ./
+mkisofs -joliet -rock -volid "$ISO_LABEL" -output "$ISO_FILE_NAME" ./*.*
