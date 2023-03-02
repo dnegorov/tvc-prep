@@ -16,6 +16,10 @@ echo
 echo
 
 # Обновляемся
+echo "Fix repo for release 1.3"
+FixRepo13020230227
+
+# Обновляемся
 echo "Updates:"
 dnf update -y
 echo
